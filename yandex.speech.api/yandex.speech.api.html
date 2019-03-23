@@ -1,0 +1,142 @@
+<!--
+https://tts.voicetech.yandex.net/generate? 
+key=<API‑ключ>
+& text=<текст>
+& format=<mp3|wav|opus>
+& [quality=<hi|lo>]
+& lang=<ru-RU|en-US|uk-UK|tr-TR>
+& speaker=<jane|oksana|alyss|omazh|zahar|ermil>
+& [speed=<скорость речи>]
+& [emotion=<good|neutral|evil>]
+-->
+
+
+<form action="https://tts.voicetech.yandex.net/generate" target="response">
+	Проговариваемый текст<br>
+	<textarea id="text" name="text" rows="9" cols="80">
+Бабрались в брудній баюрі
+два бобри брунатно-бурі.
+— Правда, брате бобре, добре?
+— Ду-у-же добре, брате бобре!
+
+Выдра в тундре.
+В недрах тундры, 
+Выдры в гетрах.
+Тырят в вёдра,
++Ядра кедров!
+
+Выдрав с выдры, 
+В тундре гетры.
+Вытру выдрой +ядра кедров,
+Вытру гетрой выдре морду.
++Ядра в вёдра,
+Выдру в тундру!
+	</textarea>
+	<iframe name="response" width="300" height="134"></iframe>
+	<br>
+	<input type="submit" value="Submit">
+	<br>
+	
+	<fieldset>
+		<legend>Key:</legend>
+		<div>
+			<input type="text" size="35" name="key" value="069b6659-984b-4c5f-880e-aaedcfd84102">
+		</div>
+	</fieldset>
+
+	<fieldset>
+		<legend>Format:</legend>
+		<div>
+			<input type="radio" id="formatChoiceMp3" name="format" value="mp3">
+			<label for="formatChoiceMp3">mp3</label>
+	
+			<input type="radio" id="formatChoiceWav" name="format" value="wav" checked>
+			<label for="formatChoiceWav">wav</label>
+	
+			<input type="radio" id="formatChoiceOpus" name="format" value="opus">
+			<label for="formatChoiceOpus">opus</label>
+		</div>
+	</fieldset>
+
+	<fieldset>
+		<legend>[Quality:]</legend>
+		<div>
+			<input type="radio" id="qualityChoiceHi" name="quality" value="hi">
+			<label for="qualityChoiceHi">hi</label>
+	
+			<input type="radio" id="qualityChoiceLo" name="quality" value="lo">
+			<label for="qualityChoiceLo">lo</label>
+		</div>
+	</fieldset>
+
+	<fieldset>
+		<legend>Lang:</legend>
+		<div>
+			<input type="radio" id="langChoiceRu" name="lang" value="ru-RU" checked>
+			<label for="langChoiceRu">ru-RU</label>
+	
+			<input type="radio" id="langChoiceEn" name="lang" value="en-US">
+			<label for="langChoiceEn">en-US</label>
+	
+			<input type="radio" id="langChoiceUk" name="lang" value="uk-UK">
+			<label for="langChoiceUk">uk-UK</label>
+	
+			<input type="radio" id="langChoiceTr" name="lang" value="tr-TR">
+			<label for="langChoiceTr">tr-TR</label>
+		</div>
+	</fieldset>
+
+	<fieldset>
+		<legend>Speaker:</legend>
+		<div id="woman">
+			Woman voices:
+			<input type="radio" id="speakerChoiceJane" name="speaker" value="jane">
+			<label for="speakerChoiceJane">jane</label>
+	
+			<input type="radio" id="speakerChoiceOksana" name="speaker" value="oksana">
+			<label for="speakerChoiceOksana">oksana</label>
+	
+			<input type="radio" id="speakerChoiceAlyss" name="speaker" value="alyss">
+			<label for="speakerChoiceAlyss">alyss</label>
+	
+			<input type="radio" id="speakerChoiceOmazh" name="speaker" value="omazh">
+			<label for="speakerChoiceOmazh">omazh</label>
+		</div>
+		<div id="man">
+			Man voices:
+			<input type="radio" id="speakerChoiceZahar" name="speaker" value="zahar">
+			<label for="speakerChoiceZahar">zahar</label>
+	
+			<input type="radio" id="speakerChoiceErmil" name="speaker" value="ermil" checked>
+			<label for="speakerChoiceErmil">ermil</label>
+		</div>
+	</fieldset>
+
+	<fieldset>
+		<legend>[Speed:]</legend>
+		<div>
+			<input type="range" name="speed" value="1.0" list="speedmarks" max="3" >
+			<datalist id="speedmarks">
+			  <option value="0.1">
+			  <option value="1.0">
+			  <option value="3.0">
+			</datalist>
+		</div>
+	</fieldset>
+
+	<fieldset>
+		<legend>[Emotion:]</legend>
+		<div>
+			<input type="radio" id="emotionChoiceGood" name="emotion" value="good" checked>
+			<label for="emotionChoiceGood">good</label>
+	
+			<input type="radio" id="emotionChoiceNeutral" name="emotion" value="neutral">
+			<label for="emotionChoiceNeutral">neutral</label>
+
+			<input type="radio" id="emotionChoiceEvil" name="emotion" value="evil">
+			<label for="emotionChoiceEvil">evil</label>
+		</div>
+	</fieldset>
+
+</form>
+
