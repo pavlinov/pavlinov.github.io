@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embedding Lab: Understanding AI Math</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'Fira Code', monospace; }
+        .vector-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            gap: 2px;
+        }
+        .vector-box {
+            height: 20px;
+            transition: all 0.2s;
+        }
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .loading-pulse { animation: pulse-subtle 2s infinite; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+
+    <div class="max-w-5xl mx-auto px-4 py-8">
+        <header class="mb-10 text-center">
+            <h1 class="text-4xl font-bold tracking-tight text-slate-800 mb-2">🧠 Embedding Lab</h1>
+            <p class="text-slate-600 text-lg">Converting human language into high-dimensional vectors.</p>
+            <div id="model-status" class="mt-4 inline-flex items-center px-4 py-2 rounded-full bg-amber-100 text-amber-800 text-sm font-medium border border-amber-200">
+                <span class="w-2 h-2 rounded-full bg-amber-500 mr-2 loading-pulse"></span>
+                Initializing Model (Downloading ~23MB)...
+            </div>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <section class="space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <span class="bg-blue-100 text-blue-600 w-8 h-8 rounded-lg flex items-center justify-center mr-2 text-sm">1</span>
+                        Input Sentences
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Sentence A</label>
+                            <textarea id="inputA" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none h-24" placeholder="Enter a sentence...">The solar system has eight planets.</textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Sentence B</label>
+                            <textarea id="inputB" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none h-24" placeholder="Enter another sentence to compare...">Jupiter is the largest planet orbiting our sun.</textarea>
+                        </div>
+                        
+                        <button id="calculateBtn" disabled class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-semibold py-4 rounded-xl transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2">
+                            <span>Calculate Embeddings</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="similarityCard" class="hidden bg-gradient-to-br from-indigo-600 to-blue-700 p-6 rounded-2xl shadow-xl text-white">
+                    <h3 class="text-lg font-semibold mb-1 opacity-90">Semantic Similarity</h3>
+                    <div class="flex items-end gap-4">
+                        <div id="similarityValue" class="text-5xl font-bold">0.0%</div>
+                        <div class="mb-2 opacity-80 italic">Match Score</div>
+                    </div>
+                    <p class="mt-4 text-sm leading-relaxed opacity-90">
+                        This score is calculated using <b>Cosine Similarity</b>. It measures the "angle" between the two vectors in 384-dimensional space.
+                    </p>
+                </div>
+            </section>
+
+            <section class="space-y-6">
+                <div class="bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-slate-800">
+                    <div class="bg-slate-800 px-6 py-4 flex justify-between items-center border-b border-slate-700">
+                        <h2 class="text-white font-medium flex items-center">
+                            <span class="bg-slate-700 text-slate-300 w-8 h-8 rounded-lg flex items-center justify-center mr-2 text-sm italic">v</span>
+                            Vector Analysis
+                        </h2>
+                        <span class="text-slate-400 text-xs mono">384 Dimensions</span>
+                    </div>
+                    
+                    <div class="p-6">
+                        <div id="rawOutput" class="mb-8 pb-6 border-b border-slate-800 hidden">
+                            <div class="grid grid-cols-1 gap-4">
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-slate-500 text-[10px] uppercase font-bold block tracking-widest">Raw Array A</label>
+                                        <span class="text-[9px] text-slate-600 mono">Floating Point Values</span>
+                                    </div>
+                                    <div id="rawValuesA" class="mono text-blue-400 text-[10px] bg-black/30 p-3 rounded-lg border border-slate-800 leading-relaxed break-all">
+                                        ...
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-slate-500 text-[10px] uppercase font-bold block tracking-widest">Raw Array B</label>
+                                        <span class="text-[9px] text-slate-600 mono">Floating Point Values</span>
+                                    </div>
+                                    <div id="rawValuesB" class="mono text-indigo-400 text-[10px] bg-black/30 p-3 rounded-lg border border-slate-800 leading-relaxed break-all">
+                                        ...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="text-slate-400 text-xs mb-4">Visual representation: Color intensity shows the magnitude of each coordinate.</p>
+                        
+                        <div class="flex items-center gap-4 mb-6 bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
+                            <span class="text-[10px] uppercase font-bold text-slate-500">Legend:</span>
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 rounded-sm bg-[hsla(0,70%,50%,0.8)]"></div>
+                                <span class="text-[10px] text-slate-400">Negative</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 rounded-sm bg-slate-700"></div>
+                                <span class="text-[10px] text-slate-400">Zero</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 rounded-sm bg-[hsla(210,70%,50%,0.8)]"></div>
+                                <span class="text-[10px] text-slate-400">Positive</span>
+                            </div>
+                        </div>
+
+                        <div id="visualizerContainer" class="space-y-6 opacity-40">
+                            <div>
+                                <label class="text-slate-500 text-[10px] uppercase font-bold mb-2 block">Vector Map A</label>
+                                <div id="gridA" class="vector-grid">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+                            
+                            <div class="border-t border-slate-800 pt-6">
+                                <label class="text-slate-500 text-[10px] uppercase font-bold mb-2 block">Vector Map B</label>
+                                <div id="gridB" class="vector-grid">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="mt-12 text-center text-slate-400 text-sm">
+            <p>Running <b>all-MiniLM-L6-v2</b> locally via Transformers.js & ONNX Runtime.</p>
+        </footer>
+    </div>
+
+    <script type="module">
+        import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1';
+
+        // Configuration
+        env.allowLocalModels = false;
+        const MODEL_NAME = 'Xenova/all-MiniLM-L6-v2';
+        
+        const statusEl = document.getElementById('model-status');
+        const calcBtn = document.getElementById('calculateBtn');
+        const gridA = document.getElementById('gridA');
+        const gridB = document.getElementById('gridB');
+        const similarityCard = document.getElementById('similarityCard');
+        const similarityValue = document.getElementById('similarityValue');
+        const rawValuesA = document.getElementById('rawValuesA');
+        const rawValuesB = document.getElementById('rawValuesB');
+        const visualizerContainer = document.getElementById('visualizerContainer');
+
+        let extractor;
+
+        async function init() {
+            try {
+                extractor = await pipeline('feature-extraction', MODEL_NAME);
+                statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span> Model Ready`;
+                statusEl.className = statusEl.className.replace('amber', 'green');
+                calcBtn.disabled = false;
+                
+                // Pre-generate empty grids
+                generateEmptyGrids();
+            } catch (err) {
+                console.error(err);
+                statusEl.innerText = "❌ Error loading model.";
+            }
+        }
+
+        function generateEmptyGrids() {
+            [gridA, gridB].forEach(grid => {
+                grid.innerHTML = '';
+                for(let i=0; i < 384; i++) {
+                    const box = document.createElement('div');
+                    box.className = 'vector-box bg-slate-800 rounded-sm';
+                    grid.appendChild(box);
+                }
+            });
+        }
+
+        function cosineSimilarity(vecA, vecB) {
+            let dotProduct = 0;
+            let normA = 0;
+            let normB = 0;
+            for (let i = 0; i < vecA.length; i++) {
+                dotProduct += vecA[i] * vecB[i];
+                normA += vecA[i] * vecA[i];
+                normB += vecB[i] * vecB[i];
+            }
+            return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+        }
+
+        function updateGrid(grid, vector) {
+            const boxes = grid.querySelectorAll('.vector-box');
+            vector.forEach((val, i) => {
+                // Map float (-1 to 1) to color intensity
+                // Normalize roughly for visualization
+                const intensity = Math.min(Math.max((val + 0.2) * 200, 20), 100);
+                const hue = val > 0 ? 210 : 0; // Blue for positive, Red for negative
+                boxes[i].style.backgroundColor = `hsla(${hue}, 70%, ${intensity}%, 0.8)`;
+                boxes[i].title = val.toFixed(4);
+            });
+        }
+
+        calcBtn.onclick = async () => {
+            const textA = document.getElementById('inputA').value;
+            const textB = document.getElementById('inputB').value;
+            
+            calcBtn.disabled = true;
+            calcBtn.innerText = "Processing Vectors...";
+            visualizerContainer.classList.remove('opacity-40');
+            
+            try {
+                // Generate Embeddings
+                const outputA = await extractor(textA, { pooling: 'mean', normalize: true });
+                const outputB = await extractor(textB, { pooling: 'mean', normalize: true });
+                
+                const vecA = Array.from(outputA.data);
+                const vecB = Array.from(outputB.data);
+                
+                // Update UI
+                updateGrid(gridA, vecA);
+                updateGrid(gridB, vecB);
+                
+                const similarity = cosineSimilarity(vecA, vecB);
+                similarityValue.innerText = (similarity * 100).toFixed(1) + '%';
+                similarityCard.classList.remove('hidden');
+                
+                document.getElementById('rawOutput').classList.remove('hidden');
+                
+                // Helper to format array for display
+                const formatVec = (vec) => {
+                    return `[ <span class="text-slate-300">${vec.slice(0, 8).map(v => v.toFixed(4)).join(', ')}</span>, ... <span class="text-slate-300">${vec.slice(-8).map(v => v.toFixed(4)).join(', ')}</span> ]`;
+                };
+
+                rawValuesA.innerHTML = formatVec(vecA);
+                rawValuesB.innerHTML = formatVec(vecB);
+                
+            } catch (err) {
+                console.error(err);
+            } finally {
+                calcBtn.disabled = false;
+                calcBtn.innerText = "Calculate Embeddings";
+            }
+        };
+
+        init();
+    </script>
+</body>
+</html>
