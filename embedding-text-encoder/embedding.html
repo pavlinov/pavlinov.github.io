@@ -199,14 +199,14 @@
                                     <label class="text-emerald-500 text-[11px] uppercase font-bold tracking-widest px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">Vector Plane <span class="ml-1 opacity-60">/ Плоскость</span></label>
                                     <span class="text-[10px] text-slate-600 mono">2D Projection <span class="opacity-60">/ Проекция</span></span>
                                 </div>
-                                <div class="flex flex-wrap gap-1.5" id="planeMetricToggle">
+                                <canvas id="canvasPlane" class="w-full rounded-xl border border-slate-800" style="height:260px"></canvas>
+                                <div class="flex flex-wrap gap-1.5 justify-end" id="planeMetricToggle">
                                     <label><input type="radio" name="planeMetric" value="all" checked class="sr-only"><span class="metric-pill">All</span></label>
                                     <label><input type="radio" name="planeMetric" value="cosine" class="sr-only"><span class="metric-pill">Cosine</span></label>
                                     <label><input type="radio" name="planeMetric" value="l2" class="sr-only"><span class="metric-pill">L2</span></label>
                                     <label><input type="radio" name="planeMetric" value="dot" class="sr-only"><span class="metric-pill">Dot ·</span></label>
                                     <label><input type="radio" name="planeMetric" value="manhattan" class="sr-only"><span class="metric-pill">Manhattan</span></label>
                                 </div>
-                                <canvas id="canvasPlane" class="w-full rounded-xl border border-slate-800" style="height:260px"></canvas>
                                 <p class="text-[10px] text-slate-500 leading-relaxed">
                                     Projects both 384-dim unit vectors into the 2D plane they actually span (Gram-Schmidt), draws them as arrows from origin on a unit circle, marks the angle arc with the exact degree value, and shows <span class="mono text-slate-400">cos θ</span> at the bottom. This is literally what cosine similarity means geometrically.
                                     <span class="block mt-1 text-slate-600">Проецирует оба 384-мерных единичных вектора на 2D-плоскость, которую они образуют (метод Грама–Шмидта), рисует их как стрелки из начала координат на единичной окружности, отмечает дугу угла с точным значением в градусах и показывает <span class="mono">cos θ</span> внизу. Это буквально геометрический смысл косинусного сходства.</span>
