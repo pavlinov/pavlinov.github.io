@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vision Embedding Lab: Local Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -79,14 +80,14 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 pb-8 border-b border-slate-800">
                             <div>
                                 <label class="text-indigo-400 text-[10px] uppercase font-bold tracking-widest mb-2 block">Array A <span class="ml-1 opacity-50">/ Массив A</span></label>
-                                <div id="rawValuesA" class="mono text-slate-500 text-[11px] bg-black/40 p-4 rounded-xl border border-slate-800 h-32 overflow-y-auto custom-scrollbar flex items-center justify-center italic text-center">
+                                <div id="rawValuesA" class="mono text-slate-500 text-[11px] bg-black/40 p-4 rounded-xl border border-slate-800 h-48 overflow-y-auto custom-scrollbar flex items-center justify-center italic text-center">
                                     Waiting for Image A...
                                 </div>
                             </div>
                             
                             <div>
                                 <label class="text-emerald-400 text-[10px] uppercase font-bold tracking-widest mb-2 block">Array B <span class="ml-1 opacity-50">/ Массив B</span></label>
-                                <div id="rawValuesB" class="mono text-slate-500 text-[11px] bg-black/40 p-4 rounded-xl border border-slate-800 h-32 overflow-y-auto custom-scrollbar flex items-center justify-center italic text-center">
+                                <div id="rawValuesB" class="mono text-slate-500 text-[11px] bg-black/40 p-4 rounded-xl border border-slate-800 h-48 overflow-y-auto custom-scrollbar flex items-center justify-center italic text-center">
                                     Waiting for Image B...
                                 </div>
                             </div>
@@ -161,6 +162,43 @@
                 </div>
             </section>
         </main>
+
+        <!-- ── PCA Space ────────────────────────────────────────────── -->
+        <section class="mt-8">
+            <div class="bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-slate-800">
+                <div class="bg-slate-800/50 px-6 py-4 flex justify-between items-center border-b border-slate-800">
+                    <h2 class="text-white font-medium flex items-center">
+                        <span class="bg-indigo-900/60 text-indigo-300 w-8 h-8 rounded-lg flex items-center justify-center mr-3 text-sm">✦</span>
+                        Multi-Image PCA Space
+                        <span class="text-slate-500 text-xs ml-3 font-normal">/ Пространство эмбеддингов</span>
+                    </h2>
+                    <span class="px-3 py-1 bg-indigo-900/50 text-indigo-300 rounded-md text-[10px] mono border border-indigo-500/30">3D Projection · PCA</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-slate-400 text-xs mb-6 max-w-3xl leading-relaxed">
+                        Add 3–6 images, compute their embeddings, then project the 1001-dimensional vectors into 3D via PCA. Similar images cluster together — this is what an embedding space actually looks like.
+                        <span class="block mt-1 text-slate-600">Добавьте 3–6 изображений, вычислите эмбеддинги и спроецируйте 1001-мерные векторы в 3D через PCA. Похожие изображения группируются вместе — так выглядит пространство эмбеддингов.</span>
+                    </p>
+
+                    <div id="pcaSlots" class="flex flex-wrap gap-4 mb-5"></div>
+
+                    <div class="flex flex-wrap gap-3 mb-6 items-center">
+                        <button id="pcaAddBtn" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm font-medium rounded-xl transition-colors border border-slate-600">
+                            <span class="text-base leading-none font-bold">+</span>
+                            Add Image <span class="opacity-50 text-xs font-normal">/ Добавить</span>
+                        </button>
+                        <button id="pcaComputeBtn" disabled class="inline-flex items-center gap-2 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-indigo-900/40">
+                            Compute PCA Space <span class="font-normal text-xs opacity-70">/ Вычислить</span>
+                        </button>
+                        <span id="pcaStatus" class="text-slate-500 text-xs mono"></span>
+                    </div>
+
+                    <div id="pcaPlot" class="rounded-xl border border-slate-800" style="height:520px;background:#020617;"></div>
+                    <p id="pcaVariance" class="mt-3 text-[10px] text-slate-600 mono hidden"></p>
+                </div>
+            </div>
+        </section>
+
         <footer class="mt-8 pt-6 border-t border-slate-200 text-center text-slate-400 text-xs flex flex-col md:flex-row justify-center gap-2 md:gap-6">
             <p>Engine: <a href="https://github.com/huggingface/transformers.js" target="_blank" class="font-bold hover:text-slate-600 underline underline-offset-2">Transformers.js v3</a></p>
             <p>Framework: <a href="https://github.com/microsoft/onnxruntime" target="_blank" class="font-bold hover:text-slate-600 underline underline-offset-2">ONNX Runtime Web</a> <span class="opacity-50 font-normal">/ Среда выполнения</span></p>
@@ -309,10 +347,218 @@
         }
 
         function updateRaw(el, vec, colorClass) {
-            const snippet = `[ <span class="${colorClass} font-bold">${vec.slice(0, 5).map(v => v.toFixed(3)).join(', ')}</span>, ... <span class="${colorClass} font-bold">${vec.slice(-3).map(v => v.toFixed(3)).join(', ')}</span> ]`;
-            el.innerHTML = snippet;
+            const head = vec.slice(0, 20).map(v => v.toFixed(4)).join(', ');
+            const tail = vec.slice(-20).map(v => v.toFixed(4)).join(', ');
+            const hidden = vec.length - 25;
+            el.innerHTML = `[ <span class="${colorClass} font-bold">${head}</span>, <span class="text-slate-600 italic text-[10px]">… ${hidden} dims hidden / скрыто …</span> <span class="${colorClass} font-bold">${tail}</span> ]`;
             el.classList.remove('flex', 'items-center', 'justify-center', 'italic', 'text-center');
         }
+
+        // ─── PCA Space ───────────────────────────────────────────────────────────
+        const PCA_COLORS = ['#60a5fa', '#34d399', '#f472b6', '#fbbf24', '#a78bfa', '#fb923c'];
+        let pcaSlots = [];
+
+        function addPCASlot() {
+            if (pcaSlots.length >= 6) return;
+            pcaSlots.push({ dataUrl: null, label: `Image ${pcaSlots.length + 1}`, vec: null });
+            renderPCASlots();
+            refreshPCAButtons();
+        }
+
+        function removePCASlot(idx) {
+            pcaSlots.splice(idx, 1);
+            renderPCASlots();
+            refreshPCAButtons();
+        }
+
+        function renderPCASlots() {
+            const container = document.getElementById('pcaSlots');
+            container.innerHTML = '';
+            pcaSlots.forEach((slot, i) => {
+                const col = PCA_COLORS[i];
+                const el = document.createElement('div');
+                el.className = 'relative flex-shrink-0 w-36 bg-slate-800 rounded-xl p-3 border border-slate-700';
+                el.innerHTML = `
+                    <div class="relative rounded-lg overflow-hidden mb-2 cursor-pointer" style="height:88px">
+                        ${slot.dataUrl
+                            ? `<img src="${slot.dataUrl}" class="w-full h-full object-cover">`
+                            : `<div class="w-full h-full flex items-center justify-center text-slate-500 text-[11px] text-center bg-slate-700/60 px-2">Click to<br>add image</div>`}
+                        <div class="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xs font-medium opacity-0 hover:opacity-100 transition-opacity rounded-lg">
+                            ${slot.dataUrl ? 'Change' : 'Select'}
+                        </div>
+                        <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" data-pca-idx="${i}">
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${col}"></span>
+                        <input type="text" value="${slot.label}" maxlength="18"
+                            class="flex-1 min-w-0 bg-slate-700 text-slate-300 text-[11px] px-2 py-1 rounded-lg border border-slate-600 outline-none focus:border-indigo-500 transition-colors"
+                            data-pca-label="${i}">
+                    </div>
+                    <p class="mt-1.5 text-[9px] text-center ${slot.vec ? 'text-emerald-500' : 'text-slate-600'}">
+                        ${slot.vec ? '✓ embedded' : 'not embedded'}
+                    </p>`;
+                if (pcaSlots.length > 3) {
+                    const rm = document.createElement('button');
+                    rm.className = 'absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 hover:bg-red-400 rounded-full text-white text-xs flex items-center justify-center leading-none transition-colors shadow';
+                    rm.textContent = '×';
+                    rm.onclick = () => removePCASlot(i);
+                    el.appendChild(rm);
+                }
+                container.appendChild(el);
+            });
+
+            container.querySelectorAll('[data-pca-idx]').forEach(inp => {
+                inp.onchange = e => {
+                    const idx = +e.target.dataset.pcaIdx;
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = ev => {
+                        pcaSlots[idx].dataUrl = ev.target.result;
+                        pcaSlots[idx].vec = null;
+                        renderPCASlots();
+                        refreshPCAButtons();
+                    };
+                    reader.readAsDataURL(file);
+                };
+            });
+
+            container.querySelectorAll('[data-pca-label]').forEach(inp => {
+                inp.oninput = e => { pcaSlots[+e.target.dataset.pcaLabel].label = e.target.value; };
+            });
+        }
+
+        function refreshPCAButtons() {
+            const addBtn = document.getElementById('pcaAddBtn');
+            const computeBtn = document.getElementById('pcaComputeBtn');
+            const filled = pcaSlots.filter(s => s.dataUrl).length;
+            addBtn.disabled = pcaSlots.length >= 6;
+            addBtn.classList.toggle('opacity-40', pcaSlots.length >= 6);
+            computeBtn.disabled = filled < 3;
+        }
+
+        async function computePCASpace() {
+            const computeBtn = document.getElementById('pcaComputeBtn');
+            const status = document.getElementById('pcaStatus');
+            computeBtn.disabled = true;
+            try {
+                const active = pcaSlots.filter(s => s.dataUrl);
+                for (let i = 0; i < active.length; i++) {
+                    if (!active[i].vec) {
+                        status.textContent = `Embedding ${i + 1} / ${active.length}…`;
+                        active[i].vec = await getEmbedding(active[i].dataUrl);
+                        renderPCASlots();
+                    }
+                }
+                status.textContent = 'Running PCA…';
+                const { scores, variance } = pcaProject(active.map(s => s.vec), 3);
+                const labels = active.map(s => s.label);
+                const colors = active.map(s => PCA_COLORS[pcaSlots.indexOf(s)]);
+                status.textContent = '';
+                renderPCAPlot(scores, labels, colors, variance);
+            } catch (err) {
+                status.textContent = `Error: ${err.message}`;
+                console.error(err);
+            } finally {
+                computeBtn.disabled = pcaSlots.filter(s => s.dataUrl).length < 3;
+                computeBtn.innerHTML = 'Compute PCA Space <span class="font-normal text-xs opacity-70">/ Вычислить</span>';
+            }
+        }
+
+        function jacobiEigen(A) {
+            const n = A.length;
+            let M = A.map(r => [...r]);
+            let V = Array.from({length: n}, (_, i) => Array.from({length: n}, (_, j) => i === j ? 1 : 0));
+            for (let iter = 0; iter < 200 * n * n; iter++) {
+                let max = 0, p = 0, q = 1;
+                for (let i = 0; i < n - 1; i++)
+                    for (let j = i + 1; j < n; j++)
+                        if (Math.abs(M[i][j]) > max) { max = Math.abs(M[i][j]); p = i; q = j; }
+                if (max < 1e-12) break;
+                const phi = (M[q][q] - M[p][p]) / (2 * M[p][q]);
+                const t = Math.sign(phi) / (Math.abs(phi) + Math.sqrt(1 + phi * phi));
+                const c = 1 / Math.sqrt(1 + t * t), s = t * c, tau = s / (1 + c);
+                M[p][p] -= t * M[p][q]; M[q][q] += t * M[p][q]; M[p][q] = M[q][p] = 0;
+                for (let r = 0; r < n; r++) {
+                    if (r !== p && r !== q) {
+                        const mp = M[r][p], mq = M[r][q];
+                        M[r][p] = M[p][r] = mp - s * (mq + tau * mp);
+                        M[r][q] = M[q][r] = mq + s * (mp - tau * mq);
+                    }
+                    const vp = V[r][p], vq = V[r][q];
+                    V[r][p] = vp - s * (vq + tau * vp);
+                    V[r][q] = vq + s * (vp - tau * vq);
+                }
+            }
+            return { eigvals: M.map((r, i) => r[i]), eigvecs: V };
+        }
+
+        function pcaProject(data, k = 3) {
+            const n = data.length, d = data[0].length;
+            const mean = new Array(d).fill(0);
+            data.forEach(v => v.forEach((x, j) => { mean[j] += x / n; }));
+            const X = data.map(v => v.map((x, j) => x - mean[j]));
+            // Gram matrix (n×n) — efficient when n << d
+            const G = Array.from({length: n}, (_, i) =>
+                Array.from({length: n}, (_, j) => X[i].reduce((s, x, l) => s + x * X[j][l], 0))
+            );
+            const { eigvals, eigvecs } = jacobiEigen(G);
+            const order = eigvals.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]).map(([, i] ) => i);
+            const totalVar = eigvals.reduce((s, v) => s + Math.max(v, 0), 0);
+            const K = Math.min(k, n - 1);
+            // Recover d-dim PC directions from Gram eigenvectors
+            const pcs = order.slice(0, K).map(col => {
+                const u = eigvecs.map(row => row[col]);
+                const p = new Array(d).fill(0);
+                for (let i = 0; i < n; i++) for (let j = 0; j < d; j++) p[j] += X[i][j] * u[i];
+                const norm = Math.sqrt(p.reduce((s, x) => s + x * x, 0));
+                return norm > 1e-10 ? p.map(x => x / norm) : p;
+            });
+            const scores = X.map(v => {
+                const s = pcs.map(pc => v.reduce((a, x, j) => a + x * pc[j], 0));
+                while (s.length < 3) s.push(0);
+                return s;
+            });
+            const variance = order.slice(0, k).map(i =>
+                ((Math.max(eigvals[i], 0) / totalVar) * 100).toFixed(1)
+            );
+            while (variance.length < 3) variance.push('0.0');
+            return { scores, variance };
+        }
+
+        function renderPCAPlot(scores, labels, colors, variance) {
+            window.Plotly.newPlot('pcaPlot', [{
+                type: 'scatter3d',
+                mode: 'markers+text',
+                x: scores.map(s => s[0]),
+                y: scores.map(s => s[1]),
+                z: scores.map(s => s[2]),
+                text: labels,
+                textposition: 'top center',
+                textfont: { size: 12, family: 'Inter, sans-serif', color: '#e2e8f0' },
+                marker: { size: 10, color: colors, line: { color: '#0f172a', width: 1 }, opacity: 0.92 },
+                hovertemplate: '<b>%{text}</b><br>PC1: %{x:.4f}<br>PC2: %{y:.4f}<br>PC3: %{z:.4f}<extra></extra>',
+            }], {
+                paper_bgcolor: '#020617',
+                scene: {
+                    bgcolor: '#020617',
+                    xaxis: { title: `PC1 (${variance[0]}%)`, color: '#475569', gridcolor: '#1e293b', zerolinecolor: '#334155', showbackground: false },
+                    yaxis: { title: `PC2 (${variance[1]}%)`, color: '#475569', gridcolor: '#1e293b', zerolinecolor: '#334155', showbackground: false },
+                    zaxis: { title: `PC3 (${variance[2]}%)`, color: '#475569', gridcolor: '#1e293b', zerolinecolor: '#334155', showbackground: false },
+                },
+                margin: { l: 0, r: 0, t: 20, b: 0 },
+                font: { family: 'Fira Code, monospace', size: 10, color: '#64748b' },
+                showlegend: false,
+            }, { responsive: true, displayModeBar: false });
+
+            const varEl = document.getElementById('pcaVariance');
+            varEl.textContent = `Explained variance / объяснённая дисперсия:  PC1 = ${variance[0]}%   PC2 = ${variance[1]}%   PC3 = ${variance[2]}%`;
+            varEl.classList.remove('hidden');
+        }
+
+        document.getElementById('pcaAddBtn').onclick = addPCASlot;
+        document.getElementById('pcaComputeBtn').onclick = computePCASpace;
+        addPCASlot(); addPCASlot(); addPCASlot();
 
         init();
     </script>
