@@ -112,6 +112,15 @@
             </div>
         </header>
 
+        <nav class="mb-6 flex gap-2">
+            <a href="embedding.html" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-blue-600 text-white shadow-md shadow-blue-200">
+                🧠 <span>Text Embeddings <span class="opacity-70 font-normal text-xs">/ Текст</span></span>
+            </a>
+            <a href="image_embedding.html" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-white text-slate-500 border border-slate-200 hover:border-slate-300 hover:text-slate-700 transition-colors">
+                🖼️ <span>Vision Embeddings <span class="opacity-60 font-normal text-xs">/ Зрение</span></span>
+            </a>
+        </nav>
+
         <main class="grid grid-cols-1 xl:grid-cols-4 gap-8">
             
             <section class="xl:col-span-3 space-y-6 order-2 xl:order-1">
@@ -382,9 +391,9 @@
         </main>
 
         <footer class="mt-8 pt-6 border-t border-slate-200 text-center text-slate-400 text-xs flex flex-col md:flex-row justify-center gap-2 md:gap-6">
-            <p>Engine: <b>Transformers.js v2.17.1</b></p>
-            <p>Framework: <b>ONNX Runtime Web</b> <span class="opacity-50 font-normal">/ Среда выполнения</span></p>
-            <p>Model: <b>all-MiniLM-L6-v2</b> (384-dimensional vectors) <span class="opacity-50 font-normal">/ 384-мерные векторы</span></p>
+            <p>Engine: <a href="https://github.com/huggingface/transformers.js" target="_blank" class="font-bold hover:text-slate-600 underline underline-offset-2">Transformers.js v2.17.1</a></p>
+            <p>Framework: <a href="https://github.com/microsoft/onnxruntime" target="_blank" class="font-bold hover:text-slate-600 underline underline-offset-2">ONNX Runtime Web</a> <span class="opacity-50 font-normal">/ Среда выполнения</span></p>
+            <p>Model: <a href="https://huggingface.co/Xenova/all-MiniLM-L6-v2" target="_blank" class="font-bold hover:text-slate-600 underline underline-offset-2">all-MiniLM-L6-v2</a> (384-dimensional vectors) <span class="opacity-50 font-normal">/ 384-мерные векторы</span></p>
         </footer>
     </div>
 

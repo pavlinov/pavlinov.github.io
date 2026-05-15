@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vision Embedding Lab: Local Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'Fira Code', monospace; }
+        .vector-grid {
+            display: grid;
+            grid-template-columns: repeat(32, 1fr);
+            gap: 1px;
+        }
+        .vector-box {
+            aspect-ratio: 1 / 1;
+            transition: all 0.3s ease;
+        }
+        .loading-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        
+        .img-preview {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 12px;
+            background: #f1f5f9;
+            border: 2px dashed #cbd5e1;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+
+    <div class="w-full max-w-[1600px] mx-auto px-6 py-6">
+        <header class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between border-b border-slate-200 pb-6">
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight text-slate-800 flex items-center gap-3">
+                    <span class="p-2 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-200">🖼️</span>
+                    Vision Lab <span class="text-slate-400 font-normal text-xl ml-2">/ Лаборатория зрения</span>
+                </h1>
+                <p class="text-slate-500 text-sm mt-1 uppercase tracking-widest font-semibold">Teacher's Edition: Local Model Mode <span class="lowercase opacity-60 ml-2 font-normal">| локальный режим</span></p>
+            </div>
+            
+            <div id="model-status" class="mt-4 md:mt-0 inline-flex items-center px-4 py-2 rounded-full bg-amber-100 text-amber-800 text-sm font-medium border border-amber-200">
+                <span class="w-2 h-2 rounded-full bg-amber-500 mr-2 loading-pulse"></span>
+                <span id="status-text">Loading Local Files... / Загрузка файлов...</span>
+            </div>
+        </header>
+
+        <nav class="mb-6 flex gap-2">
+            <a href="embedding.html" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-white text-slate-500 border border-slate-200 hover:border-slate-300 hover:text-slate-700 transition-colors">
+                🧠 <span>Text Embeddings <span class="opacity-60 font-normal text-xs">/ Текст</span></span>
+            </a>
+            <a href="image_embedding.html" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 text-white shadow-md shadow-indigo-200">
+                🖼️ <span>Vision Embeddings <span class="opacity-70 font-normal text-xs">/ Зрение</span></span>
+            </a>
+        </nav>
+
+        <main class="grid grid-cols-1 xl:grid-cols-4 gap-8">
+            
+            <!-- Left Side: Comparison Dashboard -->
+            <section class="xl:col-span-3 space-y-6 order-2 xl:order-1">
+                <div class="bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-slate-800 min-h-[700px]">
+                    <div class="bg-slate-800/50 px-6 py-4 flex justify-between items-center border-b border-slate-800">
+                        <h2 class="text-white font-medium flex items-center">
+                            <span class="bg-slate-700 text-slate-300 w-8 h-8 rounded-lg flex items-center justify-center mr-3 text-sm italic">v</span>
+                            Comparison Dashboard <span class="text-slate-500 text-xs ml-3 font-normal">/ Панель сравнения</span>
+                        </h2>
+                        <span class="px-3 py-1 bg-indigo-900/50 text-indigo-300 rounded-md text-[10px] mono border border-indigo-500/30">1001 Dimensions</span>
+                    </div>
+                    
+                    <div class="p-6">
+                        <!-- Numerical Arrays A & B -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 pb-8 border-b border-slate-800">
+                            <div>
+                                <label class="text-indigo-400 text-[10px] uppercase font-bold tracking-widest mb-2 block">Array A <span class="ml-1 opacity-50">/ Массив A</span></label>
+                                <div id="rawValuesA" class="mono text-slate-500 text-[11px] bg-black/40 p-4 rounded-xl border border-slate-800 h-32 overflow-y-auto custom-scrollbar flex items-center justify-center italic text-center">
+                                    Waiting for Image A...
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="text-emerald-400 text-[10px] uppercase font-bold tracking-widest mb-2 block">Array B <span class="ml-1 opacity-50">/ Массив B</span></label>
+                                <div id="rawValuesB" class="mono text-slate-500 text-[11px] bg-black/40 p-4 rounded-xl border border-slate-800 h-32 overflow-y-auto custom-scrollbar flex items-center justify-center italic text-center">
+                                    Waiting for Image B...
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Legend -->
+                        <div class="flex items-center gap-6 mb-6 bg-slate-800/30 p-4 rounded-xl border border-slate-700/50">
+                            <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Legend <span class="font-normal">/ Легенда:</span></span>
+                            <div class="flex items-center gap-2">
+                                <div class="w-4 h-4 rounded-sm bg-[hsla(0,70%,40%,1)]"></div>
+                                <span class="text-[10px] text-slate-400 font-medium">Low Activation <span class="opacity-50">(Низкая)</span></span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-4 h-4 rounded-sm bg-[hsla(260,70%,60%,1)]"></div>
+                                <span class="text-[10px] text-slate-400 font-medium">High Activation <span class="opacity-50">(Высокая)</span></span>
+                            </div>
+                        </div>
+
+                        <!-- Vector Maps A & B -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-4">
+                                <label class="text-indigo-400 text-[11px] uppercase font-bold tracking-widest px-3 py-1 bg-indigo-500/10 rounded-full border border-indigo-500/20 inline-block">Vector Map A <span class="ml-1 opacity-60">/ Карта A</span></label>
+                                <div id="gridA" class="vector-grid bg-slate-950 p-2 rounded-xl border border-slate-800"></div>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <label class="text-emerald-400 text-[11px] uppercase font-bold tracking-widest px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20 inline-block">Vector Map B <span class="ml-1 opacity-60">/ Карта B</span></label>
+                                <div id="gridB" class="vector-grid bg-slate-950 p-2 rounded-xl border border-slate-800"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Side: Inputs -->
+            <section class="xl:col-span-1 space-y-6 order-1 xl:order-2">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 sticky top-6">
+                    <h2 class="text-lg font-semibold mb-6 flex items-center border-b pb-4 text-slate-800">
+                        <span class="bg-indigo-100 text-indigo-600 w-7 h-7 rounded-lg flex items-center justify-center mr-2 text-xs">1</span>
+                        Data Input <span class="text-slate-400 text-xs ml-2 font-normal">/ Ввод данных</span>
+                    </h2>
+                    
+                    <div class="space-y-6">
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Image A <span class="opacity-60">/ Фото A</span></label>
+                            <div class="relative group">
+                                <img id="previewA" src="../assets/img/cat/5202023230703605512.jpg" class="img-preview">
+                                <input type="file" id="fileA" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer">
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Image B <span class="opacity-60">/ Фото B</span></label>
+                            <div class="relative group">
+                                <img id="previewB" src="../assets/img/cat/5327882235086050075.jpg" class="img-preview">
+                                <input type="file" id="fileB" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer">
+                            </div>
+                        </div>
+                        
+                        <button id="calculateBtn" disabled class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold py-4 rounded-xl transition-all shadow-lg flex flex-col items-center justify-center">
+                            <span>Process Images</span>
+                            <span class="text-[9px] opacity-70 uppercase tracking-wider">Обработать</span>
+                        </button>
+                    </div>
+
+                    <!-- Similarity -->
+                    <div class="mt-8 bg-gradient-to-br from-slate-800 to-slate-900 p-5 rounded-2xl text-white shadow-xl">
+                        <h3 class="text-[10px] font-bold opacity-60 uppercase tracking-widest mb-1">Visual Similarity <span class="lowercase italic">/ сходство</span></h3>
+                        <div id="similarityValue" class="text-4xl font-bold font-mono text-white/30 italic">0.0%</div>
+                        <p class="mt-3 text-[10px] opacity-50 border-t border-white/10 pt-3">Cosine Similarity of extracted features.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+        <footer class="mt-8 pt-6 border-t border-slate-200 text-center text-slate-400 text-xs flex flex-col md:flex-row justify-center gap-2 md:gap-6">
+            <p>Engine: <a href="https://github.com/huggingface/transformers.js" target="_blank" class="font-bold hover:text-slate-600 underline underline-offset-2">Transformers.js v3</a></p>
+            <p>Framework: <a href="https://github.com/microsoft/onnxruntime" target="_blank" class="font-bold hover:text-slate-600 underline underline-offset-2">ONNX Runtime Web</a> <span class="opacity-50 font-normal">/ Среда выполнения</span></p>
+            <p>Model: <a href="https://huggingface.co/Xenova/mobilenet_v2_1.0_224" target="_blank" class="font-bold hover:text-slate-600 underline underline-offset-2">mobilenet_v2_1.0_224</a> (1001-dimensional vectors) <span class="opacity-50 font-normal">/ 1001-мерные векторы</span></p>
+        </footer>
+    </div>
+
+    <script type="module">
+        import {
+            AutoModel,
+            AutoProcessor,
+            RawImage,
+            env
+        } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3';
+
+        // 1. Strict Local Configuration
+        env.allowLocalModels = true;
+        env.allowRemoteModels = false; 
+        env.localModelPath = './models/'; 
+        
+        env.backends.onnx.wasm.numThreads = 1;
+
+        const MODEL_ID = 'mobilenet_v2_1.0_224'; 
+
+        const statusText = document.getElementById('status-text');
+        const statusEl = document.getElementById('model-status');
+        const calcBtn = document.getElementById('calculateBtn');
+        const gridA = document.getElementById('gridA');
+        const gridB = document.getElementById('gridB');
+        const simVal = document.getElementById('similarityValue');
+        
+        let model, processor;
+        const EMBED_DIM = 1001;
+        let imgAData = '../assets/img/cat/5202023230703605512.jpg';
+        let imgBData = '../assets/img/cat/5327882235086050075.jpg';
+
+        async function init() {
+            try {
+                const configPath = `${env.localModelPath}${MODEL_ID}/config.json`;
+                const weightsPath = `${env.localModelPath}${MODEL_ID}/onnx/model_quantized.onnx`;
+                
+                console.log("Checking config:", configPath);
+                const configCheck = await fetch(configPath);
+                if (!configCheck.ok) throw new Error(`Could not find config.json at ${configPath}`);
+
+                console.log("Checking weights:", weightsPath);
+                const weightsCheck = await fetch(weightsPath);
+                if (!weightsCheck.ok) throw new Error(`Could not find model_quantized.onnx at ${weightsPath}`);
+
+                statusText.innerText = "Initializing Session... / Инициализация...";
+                
+                // We explicitly tell it to use the quantized version you have
+                processor = await AutoProcessor.from_pretrained(MODEL_ID);
+                model = await AutoModel.from_pretrained(MODEL_ID, { quantized: true });
+
+                statusText.innerText = "Local Model Ready / Готово";
+                statusEl.classList.replace('bg-amber-100', 'bg-emerald-100');
+                statusEl.classList.replace('text-amber-800', 'text-emerald-800');
+                calcBtn.disabled = false;
+                
+                generateEmptyGrids();
+            } catch (err) {
+                console.error("Session Error Details:", err);
+                statusText.innerText = `❌ Error: ${err.message}`;
+                statusEl.classList.replace('bg-amber-100', 'bg-red-100');
+                statusEl.classList.replace('text-amber-800', 'text-red-800');
+            }
+        }
+
+        function generateEmptyGrids() {
+            [gridA, gridB].forEach(grid => {
+                grid.innerHTML = '';
+                for(let i=0; i < EMBED_DIM; i++) {
+                    const box = document.createElement('div');
+                    box.className = 'vector-box bg-slate-800 rounded-sm opacity-20';
+                    grid.appendChild(box);
+                }
+            });
+        }
+
+        document.getElementById('fileA').onchange = (e) => handleImage(e.target.files[0], 'previewA', 'A');
+        document.getElementById('fileB').onchange = (e) => handleImage(e.target.files[0], 'previewB', 'B');
+
+        function handleImage(file, previewId, dataKey) {
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById(previewId).src = e.target.result;
+                if(dataKey === 'A') imgAData = e.target.result;
+                if(dataKey === 'B') imgBData = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        calcBtn.onclick = async () => {
+            if(!imgAData || !imgBData) return;
+
+            calcBtn.disabled = true;
+            calcBtn.querySelector('span:first-child').innerText = "Analyzing...";
+
+            try {
+                const vecA = await getEmbedding(imgAData);
+                const vecB = await getEmbedding(imgBData);
+
+                updateGrid(gridA, vecA);
+                updateGrid(gridB, vecB);
+                updateRaw(document.getElementById('rawValuesA'), vecA, 'text-indigo-400');
+                updateRaw(document.getElementById('rawValuesB'), vecB, 'text-emerald-400');
+
+                const similarity = cosineSimilarity(vecA, vecB);
+                simVal.innerText = (similarity * 100).toFixed(1) + '%';
+                simVal.classList.remove('text-white/30', 'italic');
+            } catch (err) {
+                console.error("Inference Error:", err);
+            } finally {
+                calcBtn.disabled = false;
+                calcBtn.querySelector('span:first-child').innerText = "Process Images";
+            }
+        };
+
+        async function getEmbedding(dataUrl) {
+            const img = await RawImage.fromURL(dataUrl);
+            const inputs = await processor(img);
+            const output = await model(inputs);
+            // MobileNetV2ForImageClassification outputs logits [batch, num_labels]
+            return Array.from(output.logits.data);
+        }
+
+        function cosineSimilarity(vecA, vecB) {
+            let dot = 0, nA = 0, nB = 0;
+            for (let i = 0; i < vecA.length; i++) {
+                dot += vecA[i] * vecB[i];
+                nA += vecA[i] * vecA[i];
+                nB += vecB[i] * vecB[i];
+            }
+            return dot / (Math.sqrt(nA) * Math.sqrt(nB));
+        }
+
+        function updateGrid(grid, vector) {
+            const boxes = grid.querySelectorAll('.vector-box');
+            vector.forEach((val, i) => {
+                const intensity = Math.min(Math.max(val * 15, 10), 80);
+                boxes[i].style.backgroundColor = `hsla(260, 70%, ${intensity}%, 1)`;
+                boxes[i].classList.remove('opacity-20');
+            });
+        }
+
+        function updateRaw(el, vec, colorClass) {
+            const snippet = `[ <span class="${colorClass} font-bold">${vec.slice(0, 5).map(v => v.toFixed(3)).join(', ')}</span>, ... <span class="${colorClass} font-bold">${vec.slice(-3).map(v => v.toFixed(3)).join(', ')}</span> ]`;
+            el.innerHTML = snippet;
+            el.classList.remove('flex', 'items-center', 'justify-center', 'italic', 'text-center');
+        }
+
+        init();
+    </script>
+</body>
+</html>
