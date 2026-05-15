@@ -26,9 +26,30 @@
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        #vec-tooltip {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 5px 9px;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: #94a3b8;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.1s;
+        }
+        #vec-tooltip.visible { opacity: 1; }
+        #vec-tooltip .dim { color: #475569; font-size: 9px; }
+        #vec-tooltip .val { color: #e2e8f0; }
+        #vec-tooltip .val.pos { color: #60a5fa; }
+        #vec-tooltip .val.neg { color: #f87171; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen">
+<div id="vec-tooltip"></div>
 
     <div class="w-full max-w-[1600px] mx-auto px-6 py-6">
         <header class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between border-b border-slate-200 pb-6">
@@ -91,16 +112,16 @@
                                 <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Color Key <span class="font-normal">/ Легенда:</span></span>
                                 <div class="flex items-center gap-4">
                                     <div class="flex items-center gap-2">
-                                        <div class="w-4 h-4 rounded-sm bg-[hsla(0,70%,50%,0.8)]"></div>
-                                        <span class="text-[10px] text-slate-400 font-medium">Negative <span class="opacity-50 font-normal">(Отриц.)</span></span>
+                                        <div id="legendNeg" class="w-4 h-4 rounded-sm bg-[hsla(0,70%,50%,0.8)]"></div>
+                                        <span class="text-[10px] text-slate-400 font-medium">Negative <span class="opacity-50 font-normal">(Отриц.)</span> <span id="legendNegVal" class="mono text-[9px] text-slate-500"></span></span>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <div class="w-4 h-4 rounded-sm bg-slate-700"></div>
-                                        <span class="text-[10px] text-slate-400 font-medium">Zero <span class="opacity-50 font-normal">(Ноль)</span></span>
+                                        <span class="text-[10px] text-slate-400 font-medium">Zero <span class="opacity-50 font-normal">(Ноль)</span> <span class="mono text-[9px] text-slate-500">0.0</span></span>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        <div class="w-4 h-4 rounded-sm bg-[hsla(210,70%,50%,0.8)]"></div>
-                                        <span class="text-[10px] text-slate-400 font-medium">Positive <span class="opacity-50 font-normal">(Полож.)</span></span>
+                                        <div id="legendPos" class="w-4 h-4 rounded-sm bg-[hsla(210,70%,50%,0.8)]"></div>
+                                        <span class="text-[10px] text-slate-400 font-medium">Positive <span class="opacity-50 font-normal">(Полож.)</span> <span id="legendPosVal" class="mono text-[9px] text-slate-500"></span></span>
                                     </div>
                                 </div>
                             </div>
@@ -234,14 +255,29 @@
             return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
         }
 
+        const tooltip = document.getElementById('vec-tooltip');
+
         function updateGrid(grid, vector) {
             const boxes = grid.querySelectorAll('.vector-box');
             vector.forEach((val, i) => {
-                // Map values to intensity and hue (Blue for positive, Red for negative)
                 const intensity = Math.min(Math.max((Math.abs(val) + 0.1) * 350, 30), 100);
-                const hue = val > 0 ? 210 : 0; 
+                const hue = val > 0 ? 210 : 0;
                 boxes[i].style.backgroundColor = `hsla(${hue}, 70%, ${intensity}%, 0.9)`;
                 boxes[i].classList.remove('opacity-30');
+
+                boxes[i].addEventListener('mouseenter', (e) => {
+                    const sign = val >= 0 ? '+' : '';
+                    const cls = val >= 0 ? 'pos' : 'neg';
+                    tooltip.innerHTML = `<span class="dim">dim ${i + 1} / 384</span><br><span class="val ${cls}">${sign}${val.toFixed(6)}</span>`;
+                    tooltip.classList.add('visible');
+                });
+                boxes[i].addEventListener('mousemove', (e) => {
+                    tooltip.style.left = (e.clientX + 14) + 'px';
+                    tooltip.style.top  = (e.clientY - 28) + 'px';
+                });
+                boxes[i].addEventListener('mouseleave', () => {
+                    tooltip.classList.remove('visible');
+                });
             });
         }
 
@@ -280,6 +316,17 @@
                 rawValuesB.innerHTML = formatVec(vecB);
                 rawValuesB.classList.remove('flex', 'items-center', 'justify-center', 'italic', 'text-slate-500');
                 rawValuesB.classList.add('text-indigo-400/90');
+
+                // Update color key with actual max values from both vectors
+                const allVals = [...vecA, ...vecB];
+                const maxVal = Math.max(...allVals);
+                const minVal = Math.min(...allVals);
+                const cellColor = (val) => {
+                    const intensity = Math.min(Math.max((Math.abs(val) + 0.1) * 350, 30), 100);
+                    return `hsla(${val >= 0 ? 210 : 0}, 70%, ${intensity}%, 0.9)`;
+                };
+                document.getElementById('legendPosVal').textContent = `+${maxVal.toFixed(4)}`;
+                document.getElementById('legendNegVal').textContent = minVal.toFixed(4);
                 
             } catch (err) {
                 console.error(err);
