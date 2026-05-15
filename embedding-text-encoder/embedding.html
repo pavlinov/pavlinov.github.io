@@ -172,10 +172,10 @@
             </section>
         </main>
 
-        <footer class="mt-8 pt-6 border-t border-slate-200 text-center text-slate-400 text-[10px] flex flex-col md:flex-row justify-center gap-2 md:gap-6 uppercase tracking-widest font-semibold">
+        <footer class="mt-8 pt-6 border-t border-slate-200 text-center text-slate-400 text-xs flex flex-col md:flex-row justify-center gap-2 md:gap-6">
             <p>Engine: <b>Transformers.js v2.17.1</b></p>
-            <p>Framework: <b>ONNX Runtime Web</b> <span class="opacity-50 font-normal normal-case">/ Среда выполнения</span></p>
-            <p>Model: <b>all-MiniLM-L6-v2</b> (384-dimensional vectors) <span class="opacity-50 font-normal normal-case">/ 384-мерные векторы</span></p>
+            <p>Framework: <b>ONNX Runtime Web</b> <span class="opacity-50 font-normal">/ Среда выполнения</span></p>
+            <p>Model: <b>all-MiniLM-L6-v2</b> (384-dimensional vectors) <span class="opacity-50 font-normal">/ 384-мерные векторы</span></p>
         </footer>
     </div>
 
@@ -271,7 +271,7 @@
                 similarityValue.classList.add('text-white', 'text-4xl');
                 
                 // Format Raw Data display
-                const formatVec = (vec) => `[ <span class="text-blue-300 font-bold">${vec.slice(0, 8).map(v => v.toFixed(4)).join(', ')}</span>, ... <span class="text-indigo-300 font-bold">${vec.slice(-4).map(v => v.toFixed(4)).join(', ')}</span> ]`;
+                const formatVec = (vec) => `[ <span class="text-slate-300 font-bold">${vec.slice(0, 10).map(v => v.toFixed(4)).join(', ')}</span>, ... <span class="text-slate-500 italic">${vec.length - 20} dims hidden / скрыто</span> ... <span class="text-slate-300 font-bold">${vec.slice(-10).map(v => v.toFixed(4)).join(', ')}</span> ]`;
 
                 rawValuesA.innerHTML = formatVec(vecA);
                 rawValuesA.classList.remove('flex', 'items-center', 'justify-center', 'italic', 'text-slate-500');
