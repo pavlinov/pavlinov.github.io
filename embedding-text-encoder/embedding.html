@@ -46,6 +46,41 @@
         #vec-tooltip .val { color: #e2e8f0; }
         #vec-tooltip .val.pos { color: #60a5fa; }
         #vec-tooltip .val.neg { color: #f87171; }
+        .metric-pill {
+            display: inline-block; cursor: pointer;
+            padding: 2px 9px; border-radius: 4px; font-size: 9px;
+            font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+            border: 1px solid #334155; color: #475569; background: transparent;
+            transition: all 0.15s; font-family: 'Fira Code', monospace;
+        }
+        .metric-pill:hover { border-color: #475569; color: #94a3b8; }
+        input[name="planeMetric"]:checked + .metric-pill { border-color: currentColor; }
+        input[name="planeMetric"][value="all"]:checked    + .metric-pill { color: #e2e8f0; background: #1e293b; }
+        input[name="planeMetric"][value="cosine"]:checked + .metric-pill { color: #fbbf24; background: rgba(251,191,36,0.1); }
+        input[name="planeMetric"][value="l2"]:checked    + .metric-pill { color: #34d399; background: rgba(52,211,153,0.1); }
+        input[name="planeMetric"][value="dot"]:checked   + .metric-pill { color: #a78bfa; background: rgba(167,139,250,0.1); }
+        input[name="planeMetric"][value="manhattan"]:checked + .metric-pill { color: #fb923c; background: rgba(251,146,60,0.1); }
+
+        #similarityCard {
+            overflow: hidden;
+            max-height: 200px;
+            opacity: 1;
+            margin-top: 2rem;
+            transition: max-height 0.35s ease, opacity 0.3s ease, margin-top 0.35s ease;
+        }
+        #similarityCard.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin-top: 0;
+        }
+        #sidebarColumn {
+            position: sticky;
+            top: 1.5rem;
+            max-height: calc(100vh - 3rem);
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+        #sidebarColumn::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <!-- Google tag (gtag.js) -->
@@ -164,11 +199,59 @@
                                     <label class="text-emerald-500 text-[11px] uppercase font-bold tracking-widest px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">Vector Plane <span class="ml-1 opacity-60">/ Плоскость</span></label>
                                     <span class="text-[10px] text-slate-600 mono">2D Projection <span class="opacity-60">/ Проекция</span></span>
                                 </div>
+                                <div class="flex flex-wrap gap-1.5" id="planeMetricToggle">
+                                    <label><input type="radio" name="planeMetric" value="all" checked class="sr-only"><span class="metric-pill">All</span></label>
+                                    <label><input type="radio" name="planeMetric" value="cosine" class="sr-only"><span class="metric-pill">Cosine</span></label>
+                                    <label><input type="radio" name="planeMetric" value="l2" class="sr-only"><span class="metric-pill">L2</span></label>
+                                    <label><input type="radio" name="planeMetric" value="dot" class="sr-only"><span class="metric-pill">Dot ·</span></label>
+                                    <label><input type="radio" name="planeMetric" value="manhattan" class="sr-only"><span class="metric-pill">Manhattan</span></label>
+                                </div>
                                 <canvas id="canvasPlane" class="w-full rounded-xl border border-slate-800" style="height:260px"></canvas>
                                 <p class="text-[10px] text-slate-500 leading-relaxed">
                                     Projects both 384-dim unit vectors into the 2D plane they actually span (Gram-Schmidt), draws them as arrows from origin on a unit circle, marks the angle arc with the exact degree value, and shows <span class="mono text-slate-400">cos θ</span> at the bottom. This is literally what cosine similarity means geometrically.
                                     <span class="block mt-1 text-slate-600">Проецирует оба 384-мерных единичных вектора на 2D-плоскость, которую они образуют (метод Грама–Шмидта), рисует их как стрелки из начала координат на единичной окружности, отмечает дугу угла с точным значением в градусах и показывает <span class="mono">cos θ</span> внизу. Это буквально геометрический смысл косинусного сходства.</span>
                                 </p>
+
+                                <!-- Distance Metrics explanation tied to the plane -->
+                                <div class="text-[10px] leading-relaxed space-y-2 pt-2 border-t border-slate-800">
+                                    <p class="text-slate-400 font-semibold uppercase tracking-wider text-[9px]">Distance Metrics on this plane <span class="font-normal normal-case text-slate-600">/ Метрики расстояния на этой плоскости</span></p>
+
+                                    <!-- Cosine -->
+                                    <div class="flex gap-2 items-start">
+                                        <span class="mt-0.5 w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
+                                        <p class="text-slate-500">
+                                            <span class="text-blue-400 font-semibold">Cosine Similarity</span> = <span class="mono text-slate-400">cos θ</span> — the cosine of the angle between the two arrows. Because both vectors sit on the unit circle, this equals their dot product. 1 = same direction, 0 = perpendicular, −1 = opposite.
+                                            <span class="block mt-0.5 text-slate-600">Косинус угла между двумя стрелками. Поскольку оба вектора лежат на единичной окружности, он равен их скалярному произведению. 1 = одно направление, 0 = перпендикулярны, −1 = противоположны.</span>
+                                        </p>
+                                    </div>
+
+                                    <!-- Euclidean -->
+                                    <div class="flex gap-2 items-start">
+                                        <span class="mt-0.5 w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                                        <p class="text-slate-500">
+                                            <span class="text-emerald-400 font-semibold">Euclidean (L2)</span> — the straight-line distance between the tips of the two arrows. For unit vectors it is always <span class="mono text-slate-400">√(2 − 2·cos θ)</span>, so it carries the same information as cosine but grows as the angle widens.
+                                            <span class="block mt-0.5 text-slate-600">Прямолинейное расстояние между концами двух стрелок. Для единичных векторов всегда равно <span class="mono">√(2 − 2·cos θ)</span> — несёт ту же информацию, что косинус, но растёт по мере увеличения угла.</span>
+                                        </p>
+                                    </div>
+
+                                    <!-- Dot Product -->
+                                    <div class="flex gap-2 items-start">
+                                        <span class="mt-0.5 w-2 h-2 rounded-full bg-purple-500 shrink-0"></span>
+                                        <p class="text-slate-500">
+                                            <span class="text-purple-400 font-semibold">Dot Product</span> — the length of the projection of one arrow onto the other. For unit vectors it equals cosine similarity exactly. For non-unit vectors it also encodes magnitude, making it sensitive to how "loud" each vector is.
+                                            <span class="block mt-0.5 text-slate-600">Длина проекции одной стрелки на другую. Для единичных векторов в точности совпадает с косинусным сходством. Для неединичных также учитывает «громкость» каждого вектора.</span>
+                                        </p>
+                                    </div>
+
+                                    <!-- Manhattan -->
+                                    <div class="flex gap-2 items-start">
+                                        <span class="mt-0.5 w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                                        <p class="text-slate-500">
+                                            <span class="text-amber-400 font-semibold">Manhattan (L1)</span> — imagine walking from tip A to tip B using only horizontal and vertical steps (no diagonals). It sums all 384 absolute dimension differences, making it more robust to outlier dimensions than L2.
+                                            <span class="block mt-0.5 text-slate-600">Представьте путь от конца A до конца B только горизонтальными и вертикальными шагами. Суммирует все 384 абсолютные разности измерений — устойчивее к выбросам, чем L2.</span>
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                             <div class="space-y-3">
                                 <div class="flex items-center justify-between">
@@ -206,8 +289,8 @@
                 </div>
             </section>
 
-            <section class="xl:col-span-1 space-y-6 order-1 xl:order-2">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 sticky top-6">
+            <section id="sidebarColumn" class="xl:col-span-1 space-y-6 order-1 xl:order-2">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <h2 class="text-lg font-semibold mb-6 flex items-center border-b pb-4 text-slate-800">
                         <span class="bg-blue-100 text-blue-600 w-7 h-7 rounded-lg flex items-center justify-center mr-2 text-xs">1</span>
                         Data Input <span class="text-slate-400 text-xs ml-2 font-normal">/ Ввод данных</span>
@@ -243,6 +326,55 @@
                             <p class="mt-3 text-[11px] leading-snug opacity-80 border-t border-white/20 pt-3">
                                 Measured via <b>Cosine Similarity</b> of the 384-dimensional vectors. <span class="opacity-70">/ Косинусное сходство 384-мерных векторов.</span>
                             </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Distance Metrics Panel -->
+                <div id="metricsPanel" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 opacity-40 transition-opacity duration-700">
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 pb-3 border-b border-slate-100">
+                        Distance Metrics <span class="font-normal opacity-60">/ Метрики расстояния</span>
+                    </h3>
+                    <div class="space-y-3">
+
+                        <!-- Cosine Similarity -->
+                        <div class="rounded-xl p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Cosine Similarity <span class="font-normal normal-case opacity-60">/ Косинусное сходство</span></span>
+                                <span id="mCosine" class="mono text-base font-bold text-blue-700">—</span>
+                            </div>
+                            <div class="h-1 bg-blue-100 rounded-full mb-1.5"><div id="mCosineBar" class="h-1 bg-blue-500 rounded-full transition-all duration-700" style="width:0%"></div></div>
+                            <p class="text-[9px] text-blue-400 leading-snug">Scale-invariant · range [−1, 1] · <span class="opacity-70">Инвариантен к масштабу</span></p>
+                        </div>
+
+                        <!-- Euclidean -->
+                        <div class="rounded-xl p-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Euclidean (L2) <span class="font-normal normal-case opacity-60">/ Евклидово расстояние</span></span>
+                                <span id="mEuclidean" class="mono text-base font-bold text-emerald-700">—</span>
+                            </div>
+                            <div class="h-1 bg-emerald-100 rounded-full mb-1.5"><div id="mEuclideanBar" class="h-1 bg-emerald-500 rounded-full transition-all duration-700" style="width:0%"></div></div>
+                            <p class="text-[9px] text-emerald-400 leading-snug">Geometric dist · for unit vecs max ≈ √2 · <span class="opacity-70">Геометрическое расстояние</span></p>
+                        </div>
+
+                        <!-- Dot Product -->
+                        <div class="rounded-xl p-3 bg-gradient-to-r from-purple-50 to-violet-50 border border-purple-100">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <span class="text-[10px] font-bold text-purple-600 uppercase tracking-wider">Dot Product <span class="font-normal normal-case opacity-60">/ Скалярное произведение</span></span>
+                                <span id="mDot" class="mono text-base font-bold text-purple-700">—</span>
+                            </div>
+                            <div class="h-1 bg-purple-100 rounded-full mb-1.5"><div id="mDotBar" class="h-1 bg-purple-500 rounded-full transition-all duration-700" style="width:0%"></div></div>
+                            <p class="text-[9px] text-purple-400 leading-snug">= Cosine for unit vecs · sensitive to magnitude · <span class="opacity-70">Скалярное произведение</span></p>
+                        </div>
+
+                        <!-- Manhattan -->
+                        <div class="rounded-xl p-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <span class="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Manhattan (L1) <span class="font-normal normal-case opacity-60">/ Манхэттенское расстояние</span></span>
+                                <span id="mManhattan" class="mono text-base font-bold text-amber-700">—</span>
+                            </div>
+                            <div class="h-1 bg-amber-100 rounded-full mb-1.5"><div id="mManhattanBar" class="h-1 bg-amber-500 rounded-full transition-all duration-700" style="width:0%"></div></div>
+                            <p class="text-[9px] text-amber-400 leading-snug">Sum of |differences| · outlier-robust · <span class="opacity-70">Сумма модулей разностей</span></p>
                         </div>
                     </div>
                 </div>
@@ -324,7 +456,7 @@
             return { ctx, W: w, H: h };
         }
 
-        function drawVectorPlane(vecA, vecB, similarity) {
+        function drawVectorPlane(vecA, vecB, similarity, metrics = {}, mode = 'all') {
             const { ctx, W, H } = initCanvas('canvasPlane');
             const cx = W / 2, cy = H / 2;
             const r = Math.min(W, H) * 0.36;
@@ -358,20 +490,20 @@
             const ax2d = vdot(vecA, e1), ay2d = vdot(vecA, e2);
             const bx2d = vdot(vecB, e1), by2d = vdot(vecB, e2);
 
-            // Angle arc between the two vectors
+            // Angle arc — Cosine
             let angA = Math.atan2(-ay2d, ax2d);
             let angB = Math.atan2(-by2d, bx2d);
             let arcS = angA, arcE = angB;
             if (arcE - arcS > Math.PI)  arcS += Math.PI * 2;
             if (arcS - arcE > Math.PI)  arcE += Math.PI * 2;
-            ctx.strokeStyle = 'rgba(251,191,36,0.35)'; ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.arc(cx, cy, r * 0.28, Math.min(arcS, arcE), Math.max(arcS, arcE)); ctx.stroke();
-
-            // Angle label
             const midAng = (arcS + arcE) / 2;
             const angleDeg = (Math.acos(Math.max(-1, Math.min(1, similarity))) * 180 / Math.PI).toFixed(1);
-            ctx.fillStyle = '#fbbf24'; ctx.font = '10px "Fira Code",monospace'; ctx.textAlign = 'center';
-            ctx.fillText(`${angleDeg}°`, cx + Math.cos(midAng) * r * 0.44, cy + Math.sin(midAng) * r * 0.44 + 4);
+            if (mode === 'all' || mode === 'cosine') {
+                ctx.strokeStyle = 'rgba(251,191,36,0.35)'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.arc(cx, cy, r * 0.28, Math.min(arcS, arcE), Math.max(arcS, arcE)); ctx.stroke();
+                ctx.fillStyle = '#fbbf24'; ctx.font = '10px "Fira Code",monospace'; ctx.textAlign = 'center';
+                ctx.fillText(`${angleDeg}°`, cx + Math.cos(midAng) * r * 0.44, cy + Math.sin(midAng) * r * 0.44 + 4);
+            }
 
             // Arrow helper
             const arrow = (x2d, y2d, color, label) => {
@@ -392,9 +524,59 @@
             arrow(ax2d, ay2d, '#60a5fa', 'A');
             arrow(bx2d, by2d, '#818cf8', 'B');
 
-            // cos θ label
-            ctx.fillStyle = '#475569'; ctx.font = '9px "Fira Code",monospace'; ctx.textAlign = 'center';
-            ctx.fillText(`cos θ = ${similarity.toFixed(4)}`, W / 2, H - 8);
+            // Tip coordinates in canvas pixels
+            const tipAx = cx + ax2d * r, tipAy = cy - ay2d * r;
+            const tipBx = cx + bx2d * r, tipBy = cy - by2d * r;
+
+            // L2 — dashed emerald chord between tips
+            if (mode === 'all' || mode === 'l2') {
+                ctx.strokeStyle = 'rgba(52,211,153,0.75)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]);
+                ctx.beginPath(); ctx.moveTo(tipAx, tipAy); ctx.lineTo(tipBx, tipBy); ctx.stroke();
+                ctx.setLineDash([]);
+                const midX = (tipAx + tipBx) / 2, midY = (tipAy + tipBy) / 2;
+                const chordAngle = Math.atan2(tipBy - tipAy, tipBx - tipAx);
+                ctx.save();
+                ctx.translate(midX, midY); ctx.rotate(chordAngle);
+                ctx.fillStyle = '#34d399'; ctx.font = '8px "Fira Code",monospace'; ctx.textAlign = 'center';
+                ctx.fillText(`L2=${metrics.euclidean != null ? metrics.euclidean.toFixed(3) : ''}`, 0, -5);
+                ctx.restore();
+            }
+
+            // Dot Product — dashed purple perpendicular from B's tip down to A's axis
+            const projPx = cx + bx2d * r, projPy = cy;
+            if (mode === 'all' || mode === 'dot') {
+                ctx.strokeStyle = 'rgba(167,139,250,0.7)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+                ctx.beginPath(); ctx.moveTo(tipBx, tipBy); ctx.lineTo(projPx, projPy); ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = '#a78bfa';
+                ctx.beginPath(); ctx.arc(projPx, projPy, 3, 0, Math.PI * 2); ctx.fill();
+                ctx.font = '8px "Fira Code",monospace';
+                ctx.textAlign = projPx > cx ? 'left' : 'right';
+                ctx.fillText(`·=${metrics.dotProduct != null ? metrics.dotProduct.toFixed(3) : ''}`, projPx + (projPx > cx ? 5 : -5), projPy + 12);
+            }
+
+            // Manhattan — orange L-shaped path: horizontal then vertical
+            if (mode === 'all' || mode === 'manhattan') {
+                ctx.strokeStyle = 'rgba(251,146,60,0.55)'; ctx.lineWidth = 1.5; ctx.setLineDash([2, 3]);
+                ctx.beginPath(); ctx.moveTo(tipAx, tipAy); ctx.lineTo(tipBx, tipAy); ctx.lineTo(tipBx, tipBy); ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = '#fb923c'; ctx.font = '8px "Fira Code",monospace';
+                ctx.textAlign = tipBx > cx ? 'left' : 'right';
+                ctx.fillText(`L1=${metrics.manhattan != null ? metrics.manhattan.toFixed(2) : ''}`, tipBx + (tipBx > cx ? 5 : -5), (tipAy + tipBy) / 2);
+            }
+
+            // Bottom legend — show value(s) for active mode
+            ctx.fillStyle = '#334155'; ctx.font = '8px "Fira Code",monospace'; ctx.textAlign = 'center';
+            const fmt4 = v => v != null ? v.toFixed(4) : '—';
+            const fmt2 = v => v != null ? v.toFixed(2) : '—';
+            const legends = {
+                all:       `cos θ=${similarity.toFixed(4)}  L2=${fmt4(metrics.euclidean)}  ·=${fmt4(metrics.dotProduct)}  L1=${fmt2(metrics.manhattan)}`,
+                cosine:    `cos θ = ${similarity.toFixed(6)}  (${angleDeg}°)`,
+                l2:        `L2 (Euclidean) = ${fmt4(metrics.euclidean)}`,
+                dot:       `Dot Product = ${fmt4(metrics.dotProduct)}`,
+                manhattan: `Manhattan L1 = ${fmt2(metrics.manhattan)}`,
+            };
+            ctx.fillText(legends[mode] ?? legends.all, W / 2, H - 8);
         }
 
         function drawDimScatter(vecA, vecB) {
@@ -461,6 +643,7 @@
         let scatterDots = [];
         let lastVecA = [], lastVecB = [];
         let lastHighlightedCell = -1;
+        let lastPlaneData = null; // { vecA, vecB, similarity, metrics }
 
         function highlightScatterDot(dimIndex, hue) {
             const hlCanvas = document.getElementById('canvasScatterHL');
@@ -627,8 +810,32 @@
                 // Store for scatter hover lookup
                 lastVecA = vecA; lastVecB = vecB;
 
+                // Distance metrics
+                const euclidean = Math.sqrt(vecA.reduce((s, v, i) => s + (v - vecB[i]) ** 2, 0));
+                const dotProduct = vecA.reduce((s, v, i) => s + v * vecB[i], 0);
+                const manhattan  = vecA.reduce((s, v, i) => s + Math.abs(v - vecB[i]), 0);
+
+                document.getElementById('mCosine').textContent    = similarity.toFixed(4);
+                document.getElementById('mEuclidean').textContent = euclidean.toFixed(4);
+                document.getElementById('mDot').textContent       = dotProduct.toFixed(4);
+                document.getElementById('mManhattan').textContent = manhattan.toFixed(2);
+
+                // Progress bars — normalised to their natural ranges
+                document.getElementById('mCosineBar').style.width    = `${((similarity + 1) / 2 * 100).toFixed(1)}%`;  // [-1,1] → [0,100%]
+                document.getElementById('mEuclideanBar').style.width = `${Math.min(euclidean / Math.SQRT2 * 100, 100).toFixed(1)}%`; // [0,√2] → [0,100%]
+                document.getElementById('mDotBar').style.width       = `${((dotProduct + 1) / 2 * 100).toFixed(1)}%`;  // [-1,1] → [0,100%]
+                document.getElementById('mManhattanBar').style.width = `${Math.min(manhattan / 20 * 100, 100).toFixed(1)}%`; // [0,~20] → [0,100%]
+
+                document.getElementById('metricsPanel').classList.remove('opacity-40');
+                document.getElementById('metricsPanel').classList.add('opacity-100');
+
+                // Store for plane re-draw on mode switch
+                const metrics = { euclidean, dotProduct, manhattan };
+                lastPlaneData = { vecA, vecB, similarity, metrics };
+
                 // 2D projections
-                drawVectorPlane(vecA, vecB, similarity);
+                const activeMode = document.querySelector('input[name="planeMetric"]:checked')?.value ?? 'all';
+                drawVectorPlane(vecA, vecB, similarity, metrics, activeMode);
                 drawDimScatter(vecA, vecB);
                 
             } catch (err) {
@@ -640,6 +847,26 @@
         };
 
         setupScatterInteraction();
+
+        // Collapse similarityCard on scroll, expand when back at top
+        const similarityCard = document.getElementById('similarityCard');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 60) {
+                similarityCard.classList.add('collapsed');
+            } else {
+                similarityCard.classList.remove('collapsed');
+            }
+        }, { passive: true });
+
+        document.querySelectorAll('input[name="planeMetric"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                if (lastPlaneData) {
+                    const { vecA, vecB, similarity, metrics } = lastPlaneData;
+                    drawVectorPlane(vecA, vecB, similarity, metrics, radio.value);
+                }
+            });
+        });
+
         // Start on load
         init();
     </script>
