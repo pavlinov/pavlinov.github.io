@@ -146,6 +146,52 @@
                                 <div id="gridB" class="vector-grid bg-slate-950 p-2 rounded-xl border border-slate-800 shadow-inner"></div>
                             </div>
                         </div>
+
+                        <!-- 2D Projections -->
+                        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-emerald-500 text-[11px] uppercase font-bold tracking-widest px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">Vector Plane <span class="ml-1 opacity-60">/ Плоскость</span></label>
+                                    <span class="text-[10px] text-slate-600 mono">2D Projection <span class="opacity-60">/ Проекция</span></span>
+                                </div>
+                                <canvas id="canvasPlane" class="w-full rounded-xl border border-slate-800" style="height:260px"></canvas>
+                                <p class="text-[10px] text-slate-500 leading-relaxed">
+                                    Projects both 384-dim unit vectors into the 2D plane they actually span (Gram-Schmidt), draws them as arrows from origin on a unit circle, marks the angle arc with the exact degree value, and shows <span class="mono text-slate-400">cos θ</span> at the bottom. This is literally what cosine similarity means geometrically.
+                                    <span class="block mt-1 text-slate-600">Проецирует оба 384-мерных единичных вектора на 2D-плоскость, которую они образуют (метод Грама–Шмидта), рисует их как стрелки из начала координат на единичной окружности, отмечает дугу угла с точным значением в градусах и показывает <span class="mono">cos θ</span> внизу. Это буквально геометрический смысл косинусного сходства.</span>
+                                </p>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-purple-500 text-[11px] uppercase font-bold tracking-widest px-3 py-1 bg-purple-500/10 rounded-full border border-purple-500/20">Dim Scatter <span class="ml-1 opacity-60">/ Корреляция</span></label>
+                                    <span class="text-[10px] text-slate-600 mono">384 Points <span class="opacity-60">/ Точек</span></span>
+                                </div>
+                                <div class="relative">
+                                    <canvas id="canvasScatter" class="w-full rounded-xl border border-slate-800" style="height:260px"></canvas>
+                                    <canvas id="canvasScatterHL" class="absolute inset-0 w-full h-full rounded-xl pointer-events-none"></canvas>
+                                </div>
+
+                                <div class="text-[10px] leading-relaxed pt-1 space-y-4">
+                                    <!-- Russian — primary -->
+                                    <div class="text-slate-500 space-y-2">
+                                        <p><span class="text-slate-400 font-semibold">Основа.</span> Оба вектора — массивы из 384 чисел. Для каждой позиции <span class="mono text-slate-400">i</span> получается пара: <span class="mono text-slate-400">(vecA[i], vecB[i])</span>. График — все 384 таких пары, нарисованные точками. Ничего сложнее.</p>
+                                        <p><span class="text-slate-400 font-semibold">Оси.</span> Ось X = «насколько Вектор A активирует измерение i». Ось Y = «насколько Вектор B активирует измерение i». Каждая точка задаёт вопрос: <em>согласны ли оба предложения в этом понятии?</em></p>
+                                        <p><span class="text-slate-400 font-semibold">Диагональ.</span> Пунктирная линия <span class="mono text-slate-400">y=x</span> — линия «полного сходства» (или линия тождества). Точка на ней означает одинаковое значение в обоих векторах для этого измерения. Если бы все 384 точки лежали на диагонали — косинусное сходство было бы 100%.</p>
+                                        <p><span class="text-slate-400 font-semibold">Форма облака.</span> Плотный кластер вдоль диагонали → предложения похожи. Круглое облако → предложения не связаны. Чем вытянутее и диагональнее облако — тем выше сходство.</p>
+                                        <p><span class="text-slate-400 font-semibold">Цвета.</span> <span class="text-blue-400">Синий</span> = оба положительные (оба активируют понятие). <span class="text-red-400">Красный</span> = оба отрицательные (оба подавляют). <span class="text-emerald-400">Зелёный</span> = разные знаки (одно активирует, другое — нет).</p>
+                                        <p><span class="text-slate-400 font-semibold">Главный вывод.</span> Косинусное сходство математически эквивалентно корреляции между двумя наборами из 384 чисел. Этот график <em>и есть</em> косинусное сходство в визуальном виде — чем плотнее и диагональнее облако, тем выше итоговая оценка.</p>
+                                    </div>
+                                    <!-- English — secondary -->
+                                    <div class="text-slate-600 space-y-2 pt-3 border-t border-slate-800">
+                                        <p><span class="text-slate-500 font-semibold">The setup.</span> Both vectors are arrays of 384 numbers. For each position <span class="mono">i</span> you get a pair: <span class="mono">(vecA[i], vecB[i])</span>. The plot is all 384 of those pairs drawn as dots. Nothing more.</p>
+                                        <p><span class="text-slate-500 font-semibold">Axes.</span> X = "how much does Vector A activate dimension i". Y = "how much does Vector B activate dimension i". Each dot asks: <em>do both sentences agree on this concept?</em></p>
+                                        <p><span class="text-slate-500 font-semibold">Diagonal.</span> The dashed <span class="mono">y=x</span> line is "perfect agreement". A dot on it means both vectors have the same value for that dimension. If all 384 dots were on the diagonal — cosine similarity would be 100%.</p>
+                                        <p><span class="text-slate-500 font-semibold">Shape.</span> Tight cluster along the diagonal → sentences are similar. Circular blob → sentences are unrelated. The more elongated and diagonal the cloud — the higher the similarity.</p>
+                                        <p><span class="text-slate-500 font-semibold">Colors.</span> <span class="text-blue-400">Blue</span> = both positive (both activate the concept). <span class="text-red-400">Red</span> = both negative (both suppress). <span class="text-emerald-400">Green</span> = opposite signs (one activates, the other does not).</p>
+                                        <p><span class="text-slate-500 font-semibold">Key insight.</span> Cosine similarity is mathematically equivalent to the correlation between two sets of 384 numbers. This plot <em>is</em> the cosine similarity visualized — the tighter and more diagonal the cloud, the higher the score.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -257,7 +303,245 @@
 
         const tooltip = document.getElementById('vec-tooltip');
 
-        function updateGrid(grid, vector) {
+        function initCanvas(id, h = 260) {
+            const canvas = document.getElementById(id);
+            const dpr = window.devicePixelRatio || 1;
+            const w = canvas.offsetWidth;
+            canvas.width  = w * dpr;
+            canvas.height = h * dpr;
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+            return { ctx, W: w, H: h };
+        }
+
+        function drawVectorPlane(vecA, vecB, similarity) {
+            const { ctx, W, H } = initCanvas('canvasPlane');
+            const cx = W / 2, cy = H / 2;
+            const r = Math.min(W, H) * 0.36;
+            const vdot = (a, b) => a.reduce((s, v, i) => s + v * b[i], 0);
+            const vnorm = v => Math.sqrt(vdot(v, v));
+
+            ctx.fillStyle = '#020617';
+            ctx.fillRect(0, 0, W, H);
+
+            // Grid
+            ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 1;
+            for (let i = 1; i < 8; i++) {
+                ctx.beginPath(); ctx.moveTo(i * W / 8, 0); ctx.lineTo(i * W / 8, H); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, i * H / 8); ctx.lineTo(W, i * H / 8); ctx.stroke();
+            }
+            // Unit circle
+            ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+            // Axes
+            ctx.strokeStyle = '#334155'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+
+            // Gram-Schmidt: orthonormal basis {e1, e2} from vecA and vecB
+            const e1 = vecA.map(v => v / vnorm(vecA));
+            const proj = vdot(vecB, e1);
+            const e2raw = vecB.map((v, i) => v - proj * e1[i]);
+            const ne2 = vnorm(e2raw);
+            const e2 = ne2 > 1e-10 ? e2raw.map(v => v / ne2) : new Array(vecA.length).fill(0);
+
+            const ax2d = vdot(vecA, e1), ay2d = vdot(vecA, e2);
+            const bx2d = vdot(vecB, e1), by2d = vdot(vecB, e2);
+
+            // Angle arc between the two vectors
+            let angA = Math.atan2(-ay2d, ax2d);
+            let angB = Math.atan2(-by2d, bx2d);
+            let arcS = angA, arcE = angB;
+            if (arcE - arcS > Math.PI)  arcS += Math.PI * 2;
+            if (arcS - arcE > Math.PI)  arcE += Math.PI * 2;
+            ctx.strokeStyle = 'rgba(251,191,36,0.35)'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(cx, cy, r * 0.28, Math.min(arcS, arcE), Math.max(arcS, arcE)); ctx.stroke();
+
+            // Angle label
+            const midAng = (arcS + arcE) / 2;
+            const angleDeg = (Math.acos(Math.max(-1, Math.min(1, similarity))) * 180 / Math.PI).toFixed(1);
+            ctx.fillStyle = '#fbbf24'; ctx.font = '10px "Fira Code",monospace'; ctx.textAlign = 'center';
+            ctx.fillText(`${angleDeg}°`, cx + Math.cos(midAng) * r * 0.44, cy + Math.sin(midAng) * r * 0.44 + 4);
+
+            // Arrow helper
+            const arrow = (x2d, y2d, color, label) => {
+                const px = cx + x2d * r, py = cy - y2d * r;
+                const ang = Math.atan2(py - cy, px - cx), al = 9;
+                ctx.strokeStyle = color; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px, py); ctx.stroke();
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.moveTo(px, py);
+                ctx.lineTo(px - al * Math.cos(ang - 0.38), py - al * Math.sin(ang - 0.38));
+                ctx.lineTo(px - al * Math.cos(ang + 0.38), py - al * Math.sin(ang + 0.38));
+                ctx.closePath(); ctx.fill();
+                ctx.font = 'bold 13px Inter,sans-serif';
+                ctx.textAlign = px > cx ? 'left' : 'right';
+                ctx.fillText(label, px + (px > cx ? 10 : -10), py + (py < cy ? -8 : 14));
+            };
+            arrow(ax2d, ay2d, '#60a5fa', 'A');
+            arrow(bx2d, by2d, '#818cf8', 'B');
+
+            // cos θ label
+            ctx.fillStyle = '#475569'; ctx.font = '9px "Fira Code",monospace'; ctx.textAlign = 'center';
+            ctx.fillText(`cos θ = ${similarity.toFixed(4)}`, W / 2, H - 8);
+        }
+
+        function drawDimScatter(vecA, vecB) {
+            const { ctx, W, H } = initCanvas('canvasScatter');
+            const pad = 36;
+            const pW = W - pad * 2, pH = H - pad * 2;
+
+            ctx.fillStyle = '#020617';
+            ctx.fillRect(0, 0, W, H);
+
+            const allV = [...vecA, ...vecB];
+            const minV = Math.min(...allV), maxV = Math.max(...allV);
+            const toX = v => pad + (v - minV) / (maxV - minV) * pW;
+            const toY = v => H - pad - (v - minV) / (maxV - minV) * pH;
+
+            // Grid
+            ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 1;
+            [0.25, 0.5, 0.75].forEach(t => {
+                const gv = minV + t * (maxV - minV);
+                ctx.beginPath(); ctx.moveTo(toX(gv), pad); ctx.lineTo(toX(gv), H - pad); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(pad, toY(gv)); ctx.lineTo(W - pad, toY(gv)); ctx.stroke();
+            });
+            // Diagonal y=x reference line
+            ctx.strokeStyle = '#334155'; ctx.setLineDash([4, 4]); ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(toX(minV), toY(minV)); ctx.lineTo(toX(maxV), toY(maxV)); ctx.stroke();
+            ctx.setLineDash([]);
+            // Axes
+            ctx.strokeStyle = '#334155'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(pad, pad); ctx.lineTo(pad, H - pad); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(pad, H - pad); ctx.lineTo(W - pad, H - pad); ctx.stroke();
+
+            // Axis labels & ticks
+            ctx.fillStyle = '#475569'; ctx.font = '9px "Fira Code",monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('Vector A →', W / 2, H - 4);
+            ctx.fillText(minV.toFixed(3), pad, H - pad + 12);
+            ctx.fillText(maxV.toFixed(3), W - pad, H - pad + 12);
+            ctx.save();
+            ctx.translate(10, H / 2); ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Vector B →', 0, 0); ctx.restore();
+            ctx.textAlign = 'right';
+            ctx.fillText(minV.toFixed(3), pad - 3, H - pad + 3);
+            ctx.fillText(maxV.toFixed(3), pad - 3, pad + 3);
+
+            // Size and clear the overlay canvas to match
+            const hlCanvas = document.getElementById('canvasScatterHL');
+            const dpr = window.devicePixelRatio || 1;
+            hlCanvas.width  = W * dpr;
+            hlCanvas.height = H * dpr;
+
+            // 384 scatter points — store CSS-pixel positions for hover highlighting
+            scatterDots = [];
+            vecA.forEach((a, i) => {
+                const b = vecB[i];
+                const x = toX(a), y = toY(b);
+                scatterDots.push({ x, y });
+                const sameSign = (a >= 0) === (b >= 0);
+                const hue = sameSign ? (a >= 0 ? 210 : 0) : 145;
+                ctx.fillStyle = `hsla(${hue},70%,60%,0.55)`;
+                ctx.beginPath(); ctx.arc(x, y, 2.2, 0, Math.PI * 2); ctx.fill();
+            });
+        }
+
+        let scatterDots = [];
+        let lastVecA = [], lastVecB = [];
+        let lastHighlightedCell = -1;
+
+        function highlightScatterDot(dimIndex, hue) {
+            const hlCanvas = document.getElementById('canvasScatterHL');
+            if (!hlCanvas || !scatterDots[dimIndex]) return;
+            const dpr = window.devicePixelRatio || 1;
+            const ctx = hlCanvas.getContext('2d');
+            ctx.clearRect(0, 0, hlCanvas.width, hlCanvas.height);
+            const { x, y } = scatterDots[dimIndex];
+            const px = x * dpr, py = y * dpr;
+
+            // Crosshair lines
+            ctx.strokeStyle = `hsla(${hue},70%,65%,0.2)`;
+            ctx.lineWidth = dpr;
+            ctx.setLineDash([3 * dpr, 3 * dpr]);
+            ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, hlCanvas.height); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(hlCanvas.width, py); ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Highlight ring
+            ctx.strokeStyle = `hsla(${hue},70%,65%,0.9)`;
+            ctx.lineWidth = 1.5 * dpr;
+            ctx.beginPath(); ctx.arc(px, py, 5.5 * dpr, 0, Math.PI * 2); ctx.stroke();
+
+            // Bright center dot
+            ctx.fillStyle = `hsla(${hue},80%,75%,1)`;
+            ctx.beginPath(); ctx.arc(px, py, 2.5 * dpr, 0, Math.PI * 2); ctx.fill();
+        }
+
+        function clearScatterHighlight() {
+            const hlCanvas = document.getElementById('canvasScatterHL');
+            if (hlCanvas) hlCanvas.getContext('2d').clearRect(0, 0, hlCanvas.width, hlCanvas.height);
+        }
+
+        function highlightGridCell(dimIndex) {
+            if (lastHighlightedCell === dimIndex) return;
+            clearGridHighlight();
+            lastHighlightedCell = dimIndex;
+            [gridA, gridB].forEach(grid => {
+                const box = grid.querySelectorAll('.vector-box')[dimIndex];
+                if (box) box.style.boxShadow = '0 0 0 2px rgba(251,191,36,0.95), 0 0 6px rgba(251,191,36,0.35)';
+            });
+        }
+
+        function clearGridHighlight() {
+            if (lastHighlightedCell < 0) return;
+            [gridA, gridB].forEach(grid => {
+                const box = grid.querySelectorAll('.vector-box')[lastHighlightedCell];
+                if (box) box.style.boxShadow = '';
+            });
+            lastHighlightedCell = -1;
+        }
+
+        function setupScatterInteraction() {
+            const canvas = document.getElementById('canvasScatter');
+            canvas.onmousemove = (e) => {
+                if (!scatterDots.length) return;
+                const rect = canvas.getBoundingClientRect();
+                const mx = e.clientX - rect.left;
+                const my = e.clientY - rect.top;
+
+                let nearestDist = Infinity, nearestIdx = -1;
+                scatterDots.forEach(({ x, y }, i) => {
+                    const d = Math.hypot(x - mx, y - my);
+                    if (d < nearestDist) { nearestDist = d; nearestIdx = i; }
+                });
+
+                if (nearestIdx >= 0 && nearestDist < 14) {
+                    highlightScatterDot(nearestIdx, 45);
+                    highlightGridCell(nearestIdx);
+                    const a = lastVecA[nearestIdx] ?? 0, b = lastVecB[nearestIdx] ?? 0;
+                    const fmt = (v) => `${v >= 0 ? '+' : ''}${v.toFixed(6)}`;
+                    tooltip.innerHTML = `<span class="dim">dim ${nearestIdx + 1} / 384</span><br>` +
+                        `<span class="val ${a >= 0 ? 'pos' : 'neg'}">A: ${fmt(a)}</span><br>` +
+                        `<span class="val ${b >= 0 ? 'pos' : 'neg'}">B: ${fmt(b)}</span>`;
+                    tooltip.style.left = (e.clientX + 14) + 'px';
+                    tooltip.style.top  = (e.clientY - 36) + 'px';
+                    tooltip.classList.add('visible');
+                } else {
+                    clearScatterHighlight();
+                    clearGridHighlight();
+                    tooltip.classList.remove('visible');
+                }
+            };
+            canvas.onmouseleave = () => {
+                clearScatterHighlight();
+                clearGridHighlight();
+                tooltip.classList.remove('visible');
+            };
+        }
+
+        function updateGrid(grid, vector, gridHue) {
             const boxes = grid.querySelectorAll('.vector-box');
             vector.forEach((val, i) => {
                 const intensity = Math.min(Math.max((Math.abs(val) + 0.1) * 350, 30), 100);
@@ -265,19 +549,21 @@
                 boxes[i].style.backgroundColor = `hsla(${hue}, 70%, ${intensity}%, 0.9)`;
                 boxes[i].classList.remove('opacity-30');
 
-                boxes[i].addEventListener('mouseenter', (e) => {
+                boxes[i].onmouseenter = (e) => {
                     const sign = val >= 0 ? '+' : '';
                     const cls = val >= 0 ? 'pos' : 'neg';
                     tooltip.innerHTML = `<span class="dim">dim ${i + 1} / 384</span><br><span class="val ${cls}">${sign}${val.toFixed(6)}</span>`;
                     tooltip.classList.add('visible');
-                });
-                boxes[i].addEventListener('mousemove', (e) => {
+                    highlightScatterDot(i, gridHue);
+                };
+                boxes[i].onmousemove = (e) => {
                     tooltip.style.left = (e.clientX + 14) + 'px';
                     tooltip.style.top  = (e.clientY - 28) + 'px';
-                });
-                boxes[i].addEventListener('mouseleave', () => {
+                };
+                boxes[i].onmouseleave = () => {
                     tooltip.classList.remove('visible');
-                });
+                    clearScatterHighlight();
+                };
             });
         }
 
@@ -296,9 +582,9 @@
                 const vecA = Array.from(outputA.data);
                 const vecB = Array.from(outputB.data);
                 
-                // Update visuals
-                updateGrid(gridA, vecA);
-                updateGrid(gridB, vecB);
+                // Update visuals — hue 210 = blue (A), hue 245 = indigo (B)
+                updateGrid(gridA, vecA, 210);
+                updateGrid(gridB, vecB, 245);
                 
                 // Calculate similarity
                 const similarity = cosineSimilarity(vecA, vecB);
@@ -327,6 +613,13 @@
                 };
                 document.getElementById('legendPosVal').textContent = `+${maxVal.toFixed(4)}`;
                 document.getElementById('legendNegVal').textContent = minVal.toFixed(4);
+
+                // Store for scatter hover lookup
+                lastVecA = vecA; lastVecB = vecB;
+
+                // 2D projections
+                drawVectorPlane(vecA, vecB, similarity);
+                drawDimScatter(vecA, vecB);
                 
             } catch (err) {
                 console.error(err);
@@ -336,6 +629,7 @@
             }
         };
 
+        setupScatterInteraction();
         // Start on load
         init();
     </script>
