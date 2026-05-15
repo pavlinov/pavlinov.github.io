@@ -16,14 +16,13 @@
         }
         .vector-box {
             aspect-ratio: 1 / 1;
-            transition: all 0.2s;
+            transition: all 0.4s ease;
         }
         @keyframes pulse-subtle {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.7; }
         }
         .loading-pulse { animation: pulse-subtle 2s infinite; }
-        /* Scrollbar styling for the dark code blocks */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
@@ -36,14 +35,14 @@
             <div>
                 <h1 class="text-3xl font-bold tracking-tight text-slate-800 flex items-center gap-3">
                     <span class="p-2 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-200">🧠</span>
-                    Embedding Lab
+                    Embedding Lab <span class="text-slate-400 font-normal text-xl ml-2">/ Лаборатория эмбеддингов</span>
                 </h1>
-                <p class="text-slate-500 text-sm mt-1 uppercase tracking-widest font-semibold">Teacher's Edition: Multi-Vector Comparison</p>
+                <p class="text-slate-500 text-sm mt-1 uppercase tracking-widest font-semibold">Teacher's Edition: Multi-Vector Comparison <span class="lowercase opacity-60 ml-2 font-normal">| сравнение векторов</span></p>
             </div>
             
             <div id="model-status" class="mt-4 md:mt-0 inline-flex items-center px-4 py-2 rounded-full bg-amber-100 text-amber-800 text-sm font-medium border border-amber-200">
                 <span class="w-2 h-2 rounded-full bg-amber-500 mr-2 loading-pulse"></span>
-                Initializing Model (all-MiniLM-L6-v2)...
+                <span id="status-text">Initializing Model (all-MiniLM-L6-v2)...</span>
             </div>
         </header>
 
@@ -54,78 +53,74 @@
                     <div class="bg-slate-800/50 px-6 py-4 flex justify-between items-center border-b border-slate-800">
                         <h2 class="text-white font-medium flex items-center">
                             <span class="bg-slate-700 text-slate-300 w-8 h-8 rounded-lg flex items-center justify-center mr-3 text-sm italic">v</span>
-                            Vector Comparison Dashboard
+                            Vector Comparison Dashboard <span class="text-slate-500 text-xs ml-3 font-normal">/ Панель сравнения</span>
                         </h2>
                         <div class="flex items-center gap-4">
-                            <span class="text-slate-500 text-[10px] uppercase font-bold tracking-widest hidden sm:block">Encoding: Floating Point 32</span>
+                            <span class="text-slate-500 text-[10px] uppercase font-bold tracking-widest hidden sm:block">Encoding: FP32</span>
                             <span class="px-3 py-1 bg-slate-700 rounded-md text-slate-300 text-[10px] mono">384 Dimensions</span>
                         </div>
                     </div>
                     
                     <div class="p-6">
-                        <!-- Raw Array Outputs Side-by-Side -->
-                        <div id="rawOutput" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 pb-8 border-b border-slate-800">
+                        <!-- Numerical Arrays: Always Visible -->
+                        <div id="rawOutput" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 pb-8 border-b border-slate-800">
                             <div>
                                 <div class="flex justify-between items-center mb-2">
-                                    <label class="text-blue-400 text-[10px] uppercase font-bold tracking-widest">Numerical Array A</label>
-                                    <span class="text-[9px] text-slate-600 mono">Coordinates 1-384</span>
+                                    <label class="text-blue-400 text-[10px] uppercase font-bold tracking-widest">Numerical Array A <span class="ml-1 opacity-50">/ Числовой массив</span></label>
+                                    <span class="text-[9px] text-slate-600 mono">Dimensions 1-384</span>
                                 </div>
-                                <div id="rawValuesA" class="mono text-blue-400/90 text-[11px] bg-black/40 p-4 rounded-xl border border-slate-800 leading-relaxed break-all h-32 overflow-y-auto custom-scrollbar">
-                                    <!-- Populated by JS -->
+                                <div id="rawValuesA" class="mono text-slate-500 text-[11px] bg-black/40 p-4 rounded-xl border border-slate-800 leading-relaxed break-all h-32 overflow-y-auto custom-scrollbar flex items-center justify-center italic">
+                                    Waiting for input...
                                 </div>
                             </div>
                             
                             <div>
                                 <div class="flex justify-between items-center mb-2">
-                                    <label class="text-indigo-400 text-[10px] uppercase font-bold tracking-widest">Numerical Array B</label>
-                                    <span class="text-[9px] text-slate-600 mono">Coordinates 1-384</span>
+                                    <label class="text-indigo-400 text-[10px] uppercase font-bold tracking-widest">Numerical Array B <span class="ml-1 opacity-50">/ Числовой массив</span></label>
+                                    <span class="text-[9px] text-slate-600 mono">Dimensions 1-384</span>
                                 </div>
-                                <div id="rawValuesB" class="mono text-indigo-400/90 text-[11px] bg-black/40 p-4 rounded-xl border border-slate-800 leading-relaxed break-all h-32 overflow-y-auto custom-scrollbar">
-                                    <!-- Populated by JS -->
+                                <div id="rawValuesB" class="mono text-slate-500 text-[11px] bg-black/40 p-4 rounded-xl border border-slate-800 leading-relaxed break-all h-32 overflow-y-auto custom-scrollbar flex items-center justify-center italic">
+                                    Waiting for input...
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Legend -->
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 bg-slate-800/30 p-4 rounded-xl border border-slate-700/50">
                             <div class="flex items-center gap-4">
-                                <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Color Key:</span>
+                                <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Color Key <span class="font-normal">/ Легенда:</span></span>
                                 <div class="flex items-center gap-4">
                                     <div class="flex items-center gap-2">
-                                        <div class="w-4 h-4 rounded-sm bg-[hsla(0,70%,50%,0.8)] shadow-sm"></div>
-                                        <span class="text-[10px] text-slate-400 font-medium">Negative Correlation</span>
+                                        <div class="w-4 h-4 rounded-sm bg-[hsla(0,70%,50%,0.8)]"></div>
+                                        <span class="text-[10px] text-slate-400 font-medium">Negative <span class="opacity-50 font-normal">(Отриц.)</span></span>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        <div class="w-4 h-4 rounded-sm bg-slate-700 shadow-sm"></div>
-                                        <span class="text-[10px] text-slate-400 font-medium">Zero / Neutral</span>
+                                        <div class="w-4 h-4 rounded-sm bg-slate-700"></div>
+                                        <span class="text-[10px] text-slate-400 font-medium">Zero <span class="opacity-50 font-normal">(Ноль)</span></span>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        <div class="w-4 h-4 rounded-sm bg-[hsla(210,70%,50%,0.8)] shadow-sm"></div>
-                                        <span class="text-[10px] text-slate-400 font-medium">Positive Correlation</span>
+                                        <div class="w-4 h-4 rounded-sm bg-[hsla(210,70%,50%,0.8)]"></div>
+                                        <span class="text-[10px] text-slate-400 font-medium">Positive <span class="opacity-50 font-normal">(Полож.)</span></span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="text-[10px] text-slate-500 italic">Visualizing semantic "fingerprints"</div>
+                            <div class="text-[10px] text-slate-500 italic">Visualizing semantic "fingerprints" / Визуализация смысловых «отпечатков»</div>
                         </div>
 
-                        <div id="visualizerContainer" class="grid grid-cols-1 md:grid-cols-2 gap-8 opacity-40 transition-opacity duration-1000">
+                        <!-- Vector Maps: Always Visible -->
+                        <div id="visualizerContainer" class="grid grid-cols-1 md:grid-cols-2 gap-8 transition-opacity duration-1000">
                             <div class="space-y-4">
                                 <div class="flex items-center justify-between">
-                                    <label class="text-blue-500 text-[11px] uppercase font-bold tracking-widest px-3 py-1 bg-blue-500/10 rounded-full border border-blue-500/20">Vector Map A</label>
-                                    <span class="text-[10px] text-slate-600 mono">16x24 Heatmap</span>
+                                    <label class="text-blue-500 text-[11px] uppercase font-bold tracking-widest px-3 py-1 bg-blue-500/10 rounded-full border border-blue-500/20">Vector Map A <span class="ml-1 opacity-60">/ Карта A</span></label>
                                 </div>
-                                <div id="gridA" class="vector-grid bg-slate-950 p-2 rounded-xl border border-slate-800 shadow-inner">
-                                    <!-- Populated by JS -->
-                                </div>
+                                <div id="gridA" class="vector-grid bg-slate-950 p-2 rounded-xl border border-slate-800 shadow-inner"></div>
                             </div>
                             
                             <div class="space-y-4">
                                 <div class="flex items-center justify-between">
-                                    <label class="text-indigo-500 text-[11px] uppercase font-bold tracking-widest px-3 py-1 bg-indigo-500/10 rounded-full border border-indigo-500/20">Vector Map B</label>
-                                    <span class="text-[10px] text-slate-600 mono">16x24 Heatmap</span>
+                                    <label class="text-indigo-500 text-[11px] uppercase font-bold tracking-widest px-3 py-1 bg-indigo-500/10 rounded-full border border-indigo-500/20">Vector Map B <span class="ml-1 opacity-60">/ Карта B</span></label>
                                 </div>
-                                <div id="gridB" class="vector-grid bg-slate-950 p-2 rounded-xl border border-slate-800 shadow-inner">
-                                    <!-- Populated by JS -->
-                                </div>
+                                <div id="gridB" class="vector-grid bg-slate-950 p-2 rounded-xl border border-slate-800 shadow-inner"></div>
                             </div>
                         </div>
                     </div>
@@ -136,36 +131,38 @@
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 sticky top-6">
                     <h2 class="text-lg font-semibold mb-6 flex items-center border-b pb-4 text-slate-800">
                         <span class="bg-blue-100 text-blue-600 w-7 h-7 rounded-lg flex items-center justify-center mr-2 text-xs">1</span>
-                        Data Input
+                        Data Input <span class="text-slate-400 text-xs ml-2 font-normal">/ Ввод данных</span>
                     </h2>
                     
                     <div class="space-y-6">
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Sentence A</label>
-                            <textarea id="inputA" class="w-full p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none h-28 text-sm leading-relaxed" placeholder="Enter sentence A...">The solar system has eight planets.</textarea>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Sentence A <span class="opacity-60">/ Предложение A</span></label>
+                            <textarea id="inputA" class="w-full p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none h-28 text-sm leading-relaxed" placeholder="Введите текст...">The solar system has eight planets.</textarea>
                         </div>
                         
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Sentence B</label>
-                            <textarea id="inputB" class="w-full p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none h-28 text-sm leading-relaxed" placeholder="Enter sentence B...">Jupiter is the largest planet orbiting our sun.</textarea>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Sentence B <span class="opacity-60">/ Предложение B</span></label>
+                            <textarea id="inputB" class="w-full p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none h-28 text-sm leading-relaxed" placeholder="Введите текст...">Jupiter is the largest planet orbiting our sun.</textarea>
                         </div>
                         
-                        <button id="calculateBtn" disabled class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2 transform active:scale-[0.98]">
+                        <button id="calculateBtn" disabled class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-blue-200 flex flex-col items-center justify-center gap-0.5 transform active:scale-[0.98]">
                             <span>Process & Compare</span>
+                            <span class="text-[9px] opacity-70 font-normal uppercase tracking-wider">Обработать и сравнить</span>
                         </button>
                     </div>
 
-                    <div id="similarityCard" class="mt-8 hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <!-- Similarity Match: Always Visible -->
+                    <div id="similarityCard" class="mt-8">
                         <div class="bg-gradient-to-br from-indigo-600 to-blue-700 p-5 rounded-2xl shadow-xl text-white">
                             <div class="flex justify-between items-start mb-2">
-                                <h3 class="text-sm font-semibold opacity-90 uppercase tracking-wider">Semantic Match</h3>
+                                <h3 class="text-sm font-semibold opacity-90 uppercase tracking-wider">Semantic Match <br><span class="text-[10px] font-normal opacity-70 lowercase italic">соответствие</span></h3>
                                 <svg class="w-5 h-5 opacity-60" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859C13.488 12.33 14 11.233 14 10a4 4 0 10-8 0c0 1.233.512 2.33 1.523 3.141.269.213.462.519.477.859h4z"></path></svg>
                             </div>
                             <div class="flex items-baseline gap-2">
-                                <div id="similarityValue" class="text-4xl font-bold font-mono">0.0%</div>
+                                <div id="similarityValue" class="text-4xl font-bold font-mono text-white/50 italic text-2xl">0.0%</div>
                             </div>
                             <p class="mt-3 text-[11px] leading-snug opacity-80 border-t border-white/20 pt-3">
-                                Measured via <b>Cosine Similarity</b> of the 384-dimensional vectors.
+                                Measured via <b>Cosine Similarity</b>. / Косинусное сходство.
                             </p>
                         </div>
                     </div>
@@ -173,65 +170,59 @@
             </section>
         </main>
 
-        <footer class="mt-8 pt-6 border-t border-slate-200 text-center text-slate-400 text-xs flex flex-col md:flex-row justify-center gap-2 md:gap-6">
-            <p>Engine: <b>Transformers.js v2.17.1</b></p>
-            <p>Framework: <b>ONNX Runtime Web</b></p>
-            <p>Model: <b>all-MiniLM-L6-v2</b> (384-dimensional vectors)</p>
+        <footer class="mt-8 pt-6 border-t border-slate-200 text-center text-slate-400 text-[10px] flex flex-col md:flex-row justify-center gap-2 md:gap-6 uppercase tracking-widest font-semibold">
+            <p>Engine: Transformers.js v2.17.1</p>
+            <p>Model: all-MiniLM-L6-v2</p>
         </footer>
     </div>
 
     <script type="module">
         import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1';
 
-        // Configuration: Allow remote models only
         env.allowLocalModels = false;
         const MODEL_NAME = 'Xenova/all-MiniLM-L6-v2';
         
         const statusEl = document.getElementById('model-status');
+        const statusText = document.getElementById('status-text');
         const calcBtn = document.getElementById('calculateBtn');
         const gridA = document.getElementById('gridA');
         const gridB = document.getElementById('gridB');
-        const similarityCard = document.getElementById('similarityCard');
         const similarityValue = document.getElementById('similarityValue');
         const rawValuesA = document.getElementById('rawValuesA');
         const rawValuesB = document.getElementById('rawValuesB');
-        const visualizerContainer = document.getElementById('visualizerContainer');
 
         let extractor;
 
-        // Initialize the Transformers.js pipeline
         async function init() {
             try {
+                // Initialize the AI extractor
                 extractor = await pipeline('feature-extraction', MODEL_NAME);
-                statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span> Model Ready`;
+                statusText.innerHTML = `Model Ready / Модель готова`;
                 statusEl.className = statusEl.className.replace('amber', 'green');
                 calcBtn.disabled = false;
                 
+                // Pre-generate grids so they are visible immediately
                 generateEmptyGrids();
             } catch (err) {
                 console.error(err);
-                statusEl.innerHTML = `❌ Error: ${err.message}`;
+                statusText.innerHTML = `❌ Error / Ошибка: ${err.message}`;
                 statusEl.classList.add('bg-red-100', 'text-red-800');
             }
         }
 
-        // Initialize empty cells for the 16x24 grids
         function generateEmptyGrids() {
             [gridA, gridB].forEach(grid => {
                 grid.innerHTML = '';
                 for(let i=0; i < 384; i++) {
                     const box = document.createElement('div');
-                    box.className = 'vector-box bg-slate-800 rounded-sm';
+                    box.className = 'vector-box bg-slate-800 rounded-sm opacity-30';
                     grid.appendChild(box);
                 }
             });
         }
 
-        // Calculate cosine similarity between two vectors
         function cosineSimilarity(vecA, vecB) {
-            let dotProduct = 0;
-            let normA = 0;
-            let normB = 0;
+            let dotProduct = 0, normA = 0, normB = 0;
             for (let i = 0; i < vecA.length; i++) {
                 dotProduct += vecA[i] * vecB[i];
                 normA += vecA[i] * vecA[i];
@@ -240,15 +231,14 @@
             return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
         }
 
-        // Map vector values to visual colors in the grid
         function updateGrid(grid, vector) {
             const boxes = grid.querySelectorAll('.vector-box');
             vector.forEach((val, i) => {
-                // Adjust scaling for visual clarity in high dimensions
-                const intensity = Math.min(Math.max((Math.abs(val) + 0.1) * 300, 25), 100);
-                const hue = val > 0 ? 210 : 0; // Blue for positive, Red for negative
-                boxes[i].style.backgroundColor = `hsla(${hue}, 70%, ${intensity}%, 0.8)`;
-                boxes[i].title = `Dimension ${i+1}: ${val.toFixed(6)}`;
+                // Map values to intensity and hue (Blue for positive, Red for negative)
+                const intensity = Math.min(Math.max((Math.abs(val) + 0.1) * 350, 30), 100);
+                const hue = val > 0 ? 210 : 0; 
+                boxes[i].style.backgroundColor = `hsla(${hue}, 70%, ${intensity}%, 0.9)`;
+                boxes[i].classList.remove('opacity-30');
             });
         }
 
@@ -257,11 +247,10 @@
             const textB = document.getElementById('inputB').value;
             
             calcBtn.disabled = true;
-            calcBtn.innerText = "Computing Embeddings...";
-            visualizerContainer.classList.remove('opacity-40');
+            calcBtn.querySelector('span:first-child').innerText = "Computing...";
             
             try {
-                // Generate embeddings using Transformers.js
+                // Generate embeddings
                 const outputA = await extractor(textA, { pooling: 'mean', normalize: true });
                 const outputB = await extractor(textB, { pooling: 'mean', normalize: true });
                 
@@ -272,30 +261,32 @@
                 updateGrid(gridA, vecA);
                 updateGrid(gridB, vecB);
                 
-                // Calculate similarity score
+                // Calculate similarity
                 const similarity = cosineSimilarity(vecA, vecB);
                 similarityValue.innerText = (similarity * 100).toFixed(1) + '%';
-                similarityCard.classList.remove('hidden');
+                similarityValue.classList.remove('text-white/50', 'italic', 'text-2xl');
+                similarityValue.classList.add('text-white', 'text-4xl');
                 
-                // Show raw data containers
-                document.getElementById('rawOutput').classList.remove('hidden');
-                
-                // Format vector string for display
-                const formatVec = (vec) => {
-                    return `[ <span class="text-slate-300 font-bold">${vec.slice(0, 10).map(v => v.toFixed(4)).join(', ')}</span>, ... <span class="text-slate-500 italic">${vec.length - 20} dims hidden</span> ... <span class="text-slate-300 font-bold">${vec.slice(-10).map(v => v.toFixed(4)).join(', ')}</span> ]`;
-                };
+                // Format Raw Data display
+                const formatVec = (vec) => `[ <span class="text-blue-300 font-bold">${vec.slice(0, 8).map(v => v.toFixed(4)).join(', ')}</span>, ... <span class="text-indigo-300 font-bold">${vec.slice(-4).map(v => v.toFixed(4)).join(', ')}</span> ]`;
 
                 rawValuesA.innerHTML = formatVec(vecA);
+                rawValuesA.classList.remove('flex', 'items-center', 'justify-center', 'italic', 'text-slate-500');
+                rawValuesA.classList.add('text-blue-400/90');
+
                 rawValuesB.innerHTML = formatVec(vecB);
+                rawValuesB.classList.remove('flex', 'items-center', 'justify-center', 'italic', 'text-slate-500');
+                rawValuesB.classList.add('text-indigo-400/90');
                 
             } catch (err) {
                 console.error(err);
             } finally {
                 calcBtn.disabled = false;
-                calcBtn.innerText = "Process & Compare";
+                calcBtn.querySelector('span:first-child').innerText = "Process & Compare";
             }
         };
 
+        // Start on load
         init();
     </script>
 </body>
