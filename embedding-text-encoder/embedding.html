@@ -112,6 +112,7 @@
                             <div class="space-y-4">
                                 <div class="flex items-center justify-between">
                                     <label class="text-blue-500 text-[11px] uppercase font-bold tracking-widest px-3 py-1 bg-blue-500/10 rounded-full border border-blue-500/20">Vector Map A <span class="ml-1 opacity-60">/ Карта A</span></label>
+                                    <span class="text-[10px] text-slate-600 mono">16x24 Heatmap <span class="opacity-60">/ Тепловая карта</span></span>
                                 </div>
                                 <div id="gridA" class="vector-grid bg-slate-950 p-2 rounded-xl border border-slate-800 shadow-inner"></div>
                             </div>
@@ -119,6 +120,7 @@
                             <div class="space-y-4">
                                 <div class="flex items-center justify-between">
                                     <label class="text-indigo-500 text-[11px] uppercase font-bold tracking-widest px-3 py-1 bg-indigo-500/10 rounded-full border border-indigo-500/20">Vector Map B <span class="ml-1 opacity-60">/ Карта B</span></label>
+                                    <span class="text-[10px] text-slate-600 mono">16x24 Heatmap <span class="opacity-60">/ Тепловая карта</span></span>
                                 </div>
                                 <div id="gridB" class="vector-grid bg-slate-950 p-2 rounded-xl border border-slate-800 shadow-inner"></div>
                             </div>
@@ -162,7 +164,7 @@
                                 <div id="similarityValue" class="text-4xl font-bold font-mono text-white/50 italic text-2xl">0.0%</div>
                             </div>
                             <p class="mt-3 text-[11px] leading-snug opacity-80 border-t border-white/20 pt-3">
-                                Measured via <b>Cosine Similarity</b>. / Косинусное сходство.
+                                Measured via <b>Cosine Similarity</b> of the 384-dimensional vectors. <span class="opacity-70">/ Косинусное сходство 384-мерных векторов.</span>
                             </p>
                         </div>
                     </div>
@@ -171,8 +173,9 @@
         </main>
 
         <footer class="mt-8 pt-6 border-t border-slate-200 text-center text-slate-400 text-[10px] flex flex-col md:flex-row justify-center gap-2 md:gap-6 uppercase tracking-widest font-semibold">
-            <p>Engine: Transformers.js v2.17.1</p>
-            <p>Model: all-MiniLM-L6-v2</p>
+            <p>Engine: <b>Transformers.js v2.17.1</b></p>
+            <p>Framework: <b>ONNX Runtime Web</b> <span class="opacity-50 font-normal normal-case">/ Среда выполнения</span></p>
+            <p>Model: <b>all-MiniLM-L6-v2</b> (384-dimensional vectors) <span class="opacity-50 font-normal normal-case">/ 384-мерные векторы</span></p>
         </footer>
     </div>
 
