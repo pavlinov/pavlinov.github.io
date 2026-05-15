@@ -11,8 +11,8 @@
         .mono { font-family: 'Fira Code', monospace; }
         .vector-grid {
             display: grid;
-            grid-template-columns: repeat(16, 1fr); /* 16x24 = 384 dimensions */
-            gap: 2px;
+            grid-template-columns: repeat(24, 1fr); /* 24x16 = 384 dimensions */
+            gap: 1px;
         }
         .vector-box {
             aspect-ratio: 1 / 1;
@@ -133,7 +133,7 @@
                             <div class="space-y-4">
                                 <div class="flex items-center justify-between">
                                     <label class="text-blue-500 text-[11px] uppercase font-bold tracking-widest px-3 py-1 bg-blue-500/10 rounded-full border border-blue-500/20">Vector Map A <span class="ml-1 opacity-60">/ Карта A</span></label>
-                                    <span class="text-[10px] text-slate-600 mono">16x24 Heatmap <span class="opacity-60">/ Тепловая карта</span></span>
+                                    <span class="text-[10px] text-slate-600 mono">24x16 Heatmap <span class="opacity-60">/ Тепловая карта</span></span>
                                 </div>
                                 <div id="gridA" class="vector-grid bg-slate-950 p-2 rounded-xl border border-slate-800 shadow-inner"></div>
                             </div>
@@ -141,7 +141,7 @@
                             <div class="space-y-4">
                                 <div class="flex items-center justify-between">
                                     <label class="text-indigo-500 text-[11px] uppercase font-bold tracking-widest px-3 py-1 bg-indigo-500/10 rounded-full border border-indigo-500/20">Vector Map B <span class="ml-1 opacity-60">/ Карта B</span></label>
-                                    <span class="text-[10px] text-slate-600 mono">16x24 Heatmap <span class="opacity-60">/ Тепловая карта</span></span>
+                                    <span class="text-[10px] text-slate-600 mono">24x16 Heatmap <span class="opacity-60">/ Тепловая карта</span></span>
                                 </div>
                                 <div id="gridB" class="vector-grid bg-slate-950 p-2 rounded-xl border border-slate-800 shadow-inner"></div>
                             </div>
