@@ -308,12 +308,12 @@
                     <div class="space-y-6">
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Sentence A <span class="opacity-60">/ Предложение A</span></label>
-                            <textarea id="inputA" class="w-full p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none h-28 text-sm leading-relaxed" placeholder="Введите текст...">The solar system has eight planets.</textarea>
+                            <textarea id="inputA" class="w-full p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none h-25 text-sm leading-relaxed" placeholder="Введите текст...">The solar system has eight planets.</textarea>
                         </div>
                         
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Sentence B <span class="opacity-60">/ Предложение B</span></label>
-                            <textarea id="inputB" class="w-full p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none h-28 text-sm leading-relaxed" placeholder="Введите текст...">Jupiter is the largest planet orbiting our sun.</textarea>
+                            <textarea id="inputB" class="w-full p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none h-25 text-sm leading-relaxed" placeholder="Введите текст...">Jupiter is the largest planet orbiting our sun.</textarea>
                         </div>
                         
                         <button id="calculateBtn" disabled class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-blue-200 flex flex-col items-center justify-center gap-0.5 transform active:scale-[0.98]">
@@ -390,10 +390,21 @@
             </section>
         </main>
 
-        <footer class="mt-8 pt-6 border-t border-slate-200 text-center text-slate-400 text-xs flex flex-col md:flex-row justify-center gap-2 md:gap-6">
-            <p>Engine: <a href="https://github.com/huggingface/transformers.js" target="_blank" class="font-bold hover:text-slate-600 underline underline-offset-2">Transformers.js v2.17.1</a></p>
-            <p>Framework: <a href="https://github.com/microsoft/onnxruntime" target="_blank" class="font-bold hover:text-slate-600 underline underline-offset-2">ONNX Runtime Web</a> <span class="opacity-50 font-normal">/ Среда выполнения</span></p>
-            <p>Model: <a href="https://huggingface.co/Xenova/all-MiniLM-L6-v2" target="_blank" class="font-bold hover:text-slate-600 underline underline-offset-2">all-MiniLM-L6-v2</a> (384-dimensional vectors) <span class="opacity-50 font-normal">/ 384-мерные векторы</span></p>
+        <footer class="mt-8 pt-6 border-t border-slate-200 text-slate-400 text-xs space-y-4">
+            <div class="flex flex-col md:flex-row justify-center gap-2 md:gap-6 text-center">
+                <p>Engine: <a href="https://github.com/huggingface/transformers.js" target="_blank" class="font-bold hover:text-slate-600 underline underline-offset-2">Transformers.js v2.17.1</a></p>
+                <p>Framework: <a href="https://github.com/microsoft/onnxruntime" target="_blank" class="font-bold hover:text-slate-600 underline underline-offset-2">ONNX Runtime Web</a> <span class="opacity-50 font-normal">/ Среда выполнения</span></p>
+                <p>Model: <a href="https://huggingface.co/Xenova/all-MiniLM-L6-v2" target="_blank" class="font-bold hover:text-slate-600 underline underline-offset-2">all-MiniLM-L6-v2</a> (384-dimensional vectors) <span class="opacity-50 font-normal">/ 384-мерные векторы</span></p>
+            </div>
+            <div class="pt-4 border-t border-slate-100">
+                <p class="text-center text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-2">Useful Links <span class="font-normal normal-case opacity-70">/ Полезные ссылки</span></p>
+                <ul class="flex flex-col md:flex-row justify-center gap-2 md:gap-6 text-center">
+                    <li>
+                        <a href="https://www.cs.cmu.edu/~dst/WordEmbeddingDemo/" target="_blank" rel="noopener" class="font-bold hover:text-slate-600 underline underline-offset-2">CMU Word Embedding Demo</a>
+                        <span class="opacity-60 font-normal">— interactive word2vec analogies <span class="opacity-70">/ интерактивные аналогии word2vec</span></span>
+                    </li>
+                </ul>
+            </div>
         </footer>
     </div>
 
