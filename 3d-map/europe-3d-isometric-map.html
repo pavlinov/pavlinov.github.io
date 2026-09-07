@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Europe Economic Evolution — 3D Isometric Map</title>
+<meta name="description" content="Interactive 3D isometric economic evolution map of Europe, 1995–2024." />
+<style>
+  :root{
+    --bg:#07111d; --panel:rgba(8,22,37,.82); --panel-2:rgba(11,31,50,.72);
+    --line:rgba(117,183,238,.25); --text:#edf6ff; --muted:#8db4d9;
+    --cyan:#2bc7db; --blue:#2d83ed; --gold:#ffbd48; --green:#48e0a4;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden}
+  button,input{font:inherit}
+  #app{position:relative;width:100%;height:100%;background:
+    radial-gradient(circle at 72% 28%,rgba(24,87,124,.25),transparent 33%),
+    linear-gradient(180deg,#071420 0%,#06101a 66%,#050d15 100%)}
+  #scene{position:absolute;inset:0}
+  #scene canvas{display:block;width:100%;height:100%}
+  #labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .country-label{pointer-events:none;color:#f4fbff;font-size:11px;font-weight:800;letter-spacing:.045em;text-shadow:0 1px 2px #001,0 0 7px rgba(47,165,255,.65);transform:translate(-50%,-50%);white-space:nowrap}
+  .country-label.selected{color:#fff2bd;font-size:12px}
+  .glass{background:linear-gradient(180deg,rgba(10,31,51,.88),rgba(6,21,36,.84));border:1px solid var(--line);box-shadow:0 18px 55px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.035);backdrop-filter:blur(14px)}
+  .top-left{position:absolute;left:28px;top:24px;width:310px;z-index:6;pointer-events:none}
+  .eyebrow{color:#8cb5df;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:7px}
+  h1{margin:0;font-size:48px;line-height:.94;letter-spacing:-.045em;font-weight:780;text-shadow:0 2px 16px rgba(0,0,0,.38)}
+  .subtitle{margin-top:9px;font-size:23px;font-weight:520;color:#8bb8e7}
+  .metric-title{margin-top:7px;color:#82a9cf;font-size:14px}
+  .meta-row{display:flex;align-items:center;gap:11px;color:#a9c9e7;font-size:13px;margin-top:16px}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green)}
+  .meta-row.demo .live-dot{background:var(--gold);box-shadow:0 0 10px var(--gold)}
+  .stat-stack{position:absolute;left:28px;top:244px;width:238px;display:grid;gap:9px;z-index:6;pointer-events:none}
+  .stat{height:78px;border-radius:13px;padding:13px 14px;display:flex;gap:13px;align-items:center}
+  .stat-icon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(53,142,221,.12);border:1px solid rgba(83,161,227,.17);font-size:20px;color:#87bced}
+  .stat strong{display:block;font-size:23px;line-height:1.05}.stat span{display:block;color:#a8c8e5;font-size:12.5px;margin-top:3px}
+  .detail{position:absolute;right:28px;top:28px;width:325px;border-radius:15px;padding:17px 18px 15px;z-index:7;transition:opacity .18s ease,transform .18s ease}
+  .detail-head{display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(132,184,225,.13);padding-bottom:12px}
+  .flag{font-size:28px;filter:saturate(.85)}
+  .detail-name{font-size:17px;font-weight:750}.detail-code{font-weight:500;color:#a4c1dc}
+  .close{margin-left:auto;border:0;background:transparent;color:#b8d0e7;font-size:22px;cursor:pointer;padding:2px 4px}
+  .detail-kicker{font-size:12px;color:#92b2d1;margin-top:14px}
+  .detail-value-row{display:flex;align-items:end;gap:11px;margin-top:2px}
+  .detail-value{font-size:34px;font-weight:780;letter-spacing:-.035em}
+  .change{margin-left:auto;font-weight:750;font-size:14px;color:var(--green);margin-bottom:5px}.change.down{color:#ff7c82}
+  #sparkline{width:100%;height:76px;margin-top:10px;display:block;background:linear-gradient(180deg,rgba(31,89,126,.11),transparent);border:1px solid rgba(128,184,225,.08)}
+  .spark-years{display:flex;justify-content:space-between;color:#789bbd;font-size:10px;margin-top:3px}
+  .legend{position:absolute;right:28px;bottom:112px;width:206px;border-radius:14px;padding:14px 15px 15px;z-index:6;pointer-events:none}
+  .legend h3{font-size:13px;margin:0 0 5px}.legend small{color:#8db0d0;font-size:10px}
+  .legend-scale{display:flex;gap:10px;margin-top:12px;align-items:stretch}
+  .legend-bar{width:20px;height:146px;border-radius:6px;background:linear-gradient(180deg,#ffbf4d,#94d9a0,#2cd2d8,#227ddb,#173d9b);box-shadow:0 0 18px rgba(42,157,232,.16)}
+  .legend-labels{display:flex;flex-direction:column;justify-content:space-between;color:#a9c5df;font-size:11px;line-height:1.1;padding:1px 0}
+  .tooltip{position:absolute;z-index:12;pointer-events:none;min-width:190px;padding:10px 11px;border-radius:10px;background:rgba(5,18,30,.94);border:1px solid rgba(108,179,233,.28);box-shadow:0 12px 32px rgba(0,0,0,.35);opacity:0;transform:translateY(4px);transition:opacity .1s,transform .1s}
+  .tooltip.show{opacity:1;transform:none}.tt-name{font-size:13px;font-weight:760}.tt-value{font-size:18px;font-weight:800;margin-top:3px}.tt-meta{font-size:10.5px;color:#8fb0ce;margin-top:2px}
+  .controls{position:absolute;left:0;right:0;bottom:0;height:88px;z-index:10;border-top:1px solid rgba(91,153,203,.18);background:linear-gradient(180deg,rgba(4,13,23,.77),rgba(4,12,21,.96));backdrop-filter:blur(15px);display:flex;align-items:center;gap:13px;padding:0 26px}
+  .round-btn,.square-btn{display:grid;place-items:center;border:1px solid rgba(77,159,233,.34);background:rgba(23,81,132,.22);color:#eaf6ff;cursor:pointer;box-shadow:inset 0 0 18px rgba(42,141,229,.08)}
+  .round-btn{width:52px;height:52px;border-radius:50%;font-size:19px}.round-btn:hover,.square-btn:hover{background:rgba(33,105,164,.36)}
+  .square-btn{width:38px;height:38px;border-radius:10px}
+  .year-start{font-size:15px;font-weight:750;width:42px;text-align:right}
+  .timeline{flex:1;display:flex;align-items:center;gap:12px;min-width:140px}
+  #yearSlider{appearance:none;width:100%;height:4px;border-radius:999px;background:linear-gradient(90deg,#2b91ef var(--pct,0%),rgba(101,158,204,.28) var(--pct,0%));outline:0}
+  #yearSlider::-webkit-slider-thumb{appearance:none;width:18px;height:18px;border-radius:50%;background:#48a8ff;box-shadow:0 0 14px #2a8fe9;border:2px solid #9cd0ff;cursor:pointer}
+  #yearSlider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#48a8ff;box-shadow:0 0 14px #2a8fe9;border:2px solid #9cd0ff;cursor:pointer}
+  .year-now{font-size:17px;font-weight:780;color:#53adff;width:45px}
+  .segmented{display:flex;border:1px solid rgba(87,151,202,.23);border-radius:13px;padding:4px;background:rgba(7,23,39,.72)}
+  .segmented button{border:0;background:transparent;color:#8fb0cf;font-size:11px;padding:9px 12px;border-radius:9px;cursor:pointer;white-space:nowrap}
+  .segmented button.active{background:linear-gradient(180deg,rgba(40,137,226,.42),rgba(29,100,173,.28));color:#eef8ff;box-shadow:0 0 0 1px rgba(74,164,241,.54),0 0 18px rgba(50,140,229,.15)}
+  .control-label{font-size:10px;color:#7e9db9;margin-right:-4px}
+  .iso-badge{position:absolute;right:258px;bottom:112px;z-index:6;padding:8px 10px;border-radius:10px;color:#8eb7db;font-size:10px;letter-spacing:.08em;text-transform:uppercase;pointer-events:none}
+  .loading{position:absolute;inset:0;display:grid;place-items:center;z-index:30;background:#07111d;transition:opacity .35s ease}
+  .loading.hide{opacity:0;pointer-events:none}.loader-card{text-align:center}.spinner{width:36px;height:36px;border-radius:50%;border:3px solid rgba(90,168,225,.18);border-top-color:#3aa5f5;margin:0 auto 12px;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+  .loader-card b{display:block}.loader-card span{color:#8faecb;font-size:12px}
+  @media (max-width:900px){
+    .top-left{left:18px;top:18px}.top-left h1{font-size:36px}.subtitle{font-size:18px}.stat-stack{display:none}.detail{right:14px;top:14px;width:280px}.legend{display:none}.controls{padding:0 12px}.segmented button{padding:8px 8px}.iso-badge{display:none}
+  }
+  @media (max-width:650px){.detail{display:none}.top-left{width:235px}.metric-title,.meta-row{font-size:11px}.controls{height:82px}.square-btn{display:none}.segmented{display:none}}
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="app">
+  <div id="scene"></div>
+  <div id="labels"></div>
+  <section class="top-left">
+    <div class="eyebrow">Interactive 3D data map</div>
+    <h1>Europe</h1>
+    <div class="subtitle">Economic Evolution</div>
+    <div class="metric-title">GDP per capita · PPP · constant 2021 international $</div>
+    <div class="meta-row" id="dataStatus"><span class="live-dot"></span><span>35 countries · 30 years · 1995–2024 · loading live data</span></div>
+  </section>
+  <section class="stat-stack">
+    <div class="stat glass"><div class="stat-icon">▥</div><div><strong>35</strong><span>European countries</span></div></div>
+    <div class="stat glass"><div class="stat-icon">◷</div><div><strong>30</strong><span>years of data<br>1995–2024</span></div></div>
+    <div class="stat glass"><div class="stat-icon">⌁</div><div><strong style="font-size:15px">Real GDP / capita</strong><span>World Bank / OWID</span></div></div>
+  </section>
+  <section class="detail glass" id="detailCard">
+    <div class="detail-head"><div class="flag" id="flag">🇩🇪</div><div class="detail-name"><span id="countryName">Germany</span> <span class="detail-code" id="countryCode">(DEU)</span></div><button class="close" id="closeDetail" title="Close">×</button></div>
+    <div class="detail-kicker" id="detailKicker">GDP per capita (2024)</div>
+    <div class="detail-value-row"><div class="detail-value" id="detailValue">—</div><div class="change" id="detailChange">—</div></div>
+    <svg id="sparkline" viewBox="0 0 290 76" preserveAspectRatio="none" aria-label="Economic trend"></svg>
+    <div class="spark-years"><span>1995</span><span>2024</span></div>
+  </section>
+  <section class="legend glass">
+    <h3 id="legendTitle">GDP per capita</h3><small id="legendSub">PPP, constant 2021 int-$</small>
+    <div class="legend-scale"><div class="legend-bar" id="legendBar"></div><div class="legend-labels"><span id="l5">High</span><span id="l4"></span><span id="l3"></span><span id="l2"></span><span id="l1">Low</span></div></div>
+  </section>
+  <div class="iso-badge glass">Drag to orbit · wheel to zoom · true orthographic / isometric camera</div>
+  <div class="tooltip" id="tooltip"><div class="tt-name"></div><div class="tt-value"></div><div class="tt-meta"></div></div>
+  <footer class="controls">
+    <button class="round-btn" id="playBtn" title="Play / pause">▶</button>
+    <button class="square-btn" id="resetView" title="Reset isometric view">◇</button>
+    <div class="year-start">1995</div>
+    <div class="timeline"><input type="range" id="yearSlider" min="1995" max="2024" value="1995" step="1" /><div class="year-now" id="yearNow">1995</div></div>
+    <div class="segmented" id="modeSwitcher"><button class="active" data-mode="level">GDP per capita</button><button data-mode="index">Growth vs 1995</button></div>
+    <span class="control-label">3D</span><button class="square-btn" id="heightToggle" title="Toggle data-driven height">▦</button>
+  </footer>
+  <div class="loading" id="loading"><div class="loader-card"><div class="spinner"></div><b>Building 3D Europe</b><span>Loading geometry and economic series…</span></div></div>
+</div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+const COUNTRY_META = {"ALB":{"name":"Albania","a2":"AL","flag":"🇦🇱"},"AUT":{"name":"Austria","a2":"AT","flag":"🇦🇹"},"BEL":{"name":"Belgium","a2":"BE","flag":"🇧🇪"},"BGR":{"name":"Bulgaria","a2":"BG","flag":"🇧🇬"},"BIH":{"name":"Bosnia and Herzegovina","a2":"BA","flag":"🇧🇦"},"CHE":{"name":"Switzerland","a2":"CH","flag":"🇨🇭"},"CZE":{"name":"Czechia","a2":"CZ","flag":"🇨🇿"},"DEU":{"name":"Germany","a2":"DE","flag":"🇩🇪"},"DNK":{"name":"Denmark","a2":"DK","flag":"🇩🇰"},"ESP":{"name":"Spain","a2":"ES","flag":"🇪🇸"},"EST":{"name":"Estonia","a2":"EE","flag":"🇪🇪"},"FIN":{"name":"Finland","a2":"FI","flag":"🇫🇮"},"FRA":{"name":"France","a2":"FR","flag":"🇫🇷"},"GBR":{"name":"United Kingdom","a2":"GB","flag":"🇬🇧"},"GRC":{"name":"Greece","a2":"GR","flag":"🇬🇷"},"HRV":{"name":"Croatia","a2":"HR","flag":"🇭🇷"},"HUN":{"name":"Hungary","a2":"HU","flag":"🇭🇺"},"IRL":{"name":"Ireland","a2":"IE","flag":"🇮🇪"},"ISL":{"name":"Iceland","a2":"IS","flag":"🇮🇸"},"ITA":{"name":"Italy","a2":"IT","flag":"🇮🇹"},"LTU":{"name":"Lithuania","a2":"LT","flag":"🇱🇹"},"LUX":{"name":"Luxembourg","a2":"LU","flag":"🇱🇺"},"LVA":{"name":"Latvia","a2":"LV","flag":"🇱🇻"},"MDA":{"name":"Moldova","a2":"MD","flag":"🇲🇩"},"MKD":{"name":"North Macedonia","a2":"MK","flag":"🇲🇰"},"NLD":{"name":"Netherlands","a2":"NL","flag":"🇳🇱"},"NOR":{"name":"Norway","a2":"NO","flag":"🇳🇴"},"POL":{"name":"Poland","a2":"PL","flag":"🇵🇱"},"PRT":{"name":"Portugal","a2":"PT","flag":"🇵🇹"},"ROU":{"name":"Romania","a2":"RO","flag":"🇷🇴"},"SRB":{"name":"Serbia","a2":"RS","flag":"🇷🇸"},"SVK":{"name":"Slovakia","a2":"SK","flag":"🇸🇰"},"SVN":{"name":"Slovenia","a2":"SI","flag":"🇸🇮"},"SWE":{"name":"Sweden","a2":"SE","flag":"🇸🇪"},"UKR":{"name":"Ukraine","a2":"UA","flag":"🇺🇦"}};
+const COUNTRY_CODES = ["ALB","AUT","BEL","BGR","BIH","CHE","CZE","DEU","DNK","ESP","EST","FIN","FRA","GBR","GRC","HRV","HUN","IRL","ISL","ITA","LTU","LUX","LVA","MDA","MKD","NLD","NOR","POL","PRT","ROU","SRB","SVK","SVN","SWE","UKR"];
+// Country outlines and label anchors are mirrored (y' = 900 - y, vertex order reversed to keep winding) so the map reads
+// with correct handedness and north up after mapRoot's -90° X rotation, which maps SVG +y onto -z (toward the camera).
+const PATHS = {"ALB": "M 766.4,231.8 L 761.8,228.2 L 761.7,221.6 L 755.7,211.0 L 752.9,212.0 L 752.1,216.3 L 742.8,221.9 L 740.4,231.2 L 740.1,245.0 L 741.5,251.4 L 738.6,254.2 L 738.6,254.2 L 736.8,260.5 L 742.1,271.1 L 743.5,267.5 L 747.2,269.8 L 751.1,264.8 L 754.9,263.3 L 756.8,256.2 L 756.8,256.2 L 755.8,249.2 L 759.0,241.0 L 766.0,237.0 L 766.4,231.8 Z ", "AUT": "M 691.3,367.1 L 683.7,366.3 L 686.7,362.2 L 683.2,348.9 L 680.9,345.3 L 668.8,343.9 L 662.1,338.9 L 650.5,339.8 L 630.5,344.2 L 627.2,351.1 L 613.7,347.3 L 612.1,343.4 L 603.7,346.2 L 596.7,346.7 L 590.5,350.4 L 592.6,355.3 L 592.1,358.9 L 596.2,360.0 L 603.1,354.4 L 605.0,359.7 L 617.1,359.0 L 626.7,362.9 L 633.3,362.5 L 637.7,358.5 L 638.8,362.0 L 636.4,375.0 L 641.1,377.8 L 645.4,387.2 L 655.6,381.3 L 662.6,390.0 L 667.1,391.8 L 677.8,386.5 L 684.0,388.0 L 690.4,384.8 L 689.6,382.2 L 691.6,375.4 L 691.3,367.1 Z ", "BEL": "M 546.4,412.6 L 543.0,412.1 L 541.0,400.9 L 530.2,410.8 L 523.4,409.7 L 515.2,419.9 L 510.0,428.5 L 504.1,429.4 L 503.0,436.7 L 513.4,439.6 L 513.4,439.6 L 513.4,439.6 L 522.5,437.3 L 534.5,440.6 L 541.9,431.2 L 548.6,426.2 L 546.4,412.6 Z ", "BGR": "M 785.5,300.8 L 790.8,303.2 L 802.4,302.2 L 823.6,305.4 L 829.6,311.9 L 845.3,320.3 L 857.1,315.6 L 865.9,315.6 L 860.5,305.7 L 858.4,290.3 L 865.6,280.3 L 852.5,279.9 L 838.8,270.4 L 840.6,260.5 L 827.5,255.8 L 815.7,260.6 L 804.8,252.9 L 793.6,251.5 L 790.5,264.4 L 782.1,269.6 L 784.1,272.8 L 782.1,274.8 L 783.6,281.6 L 788.1,288.7 L 779.7,296.1 L 777.3,303.1 L 780.1,308.2 L 785.5,300.8 Z ", "BIH": "M 711.0,274.3 L 704.7,282.1 L 698.7,286.0 L 691.4,292.9 L 687.8,298.8 L 680.0,307.6 L 682.4,316.2 L 687.8,312.0 L 690.6,316.4 L 697.2,317.5 L 709.7,315.4 L 719.4,316.7 L 726.4,313.1 L 726.4,313.1 L 731.5,313.8 L 729.0,304.5 L 736.8,297.7 L 735.8,288.1 L 732.5,286.8 L 730.0,284.6 L 725.8,279.4 L 724.8,268.2 L 711.0,274.3 Z ", "CHE": "M 592.6,355.3 L 590.5,350.4 L 596.7,346.7 L 603.7,346.2 L 602.7,337.9 L 596.5,334.5 L 586.2,337.1 L 583.1,329.0 L 576.4,328.5 L 574.1,331.8 L 566.0,325.2 L 559.2,324.4 L 553.3,329.0 L 548.9,338.0 L 542.1,335.2 L 542.8,344.3 L 553.3,355.1 L 553.1,360.2 L 559.3,358.1 L 563.1,361.4 L 574.7,360.9 L 577.6,365.2 L 592.1,358.9 L 592.6,355.3 Z ", "CZE": "M 667.7,427.1 L 677.3,426.1 L 677.0,420.5 L 684.3,417.0 L 685.8,422.4 L 694.7,421.0 L 696.6,414.8 L 706.3,414.7 L 713.4,405.5 L 709.6,405.0 L 707.9,401.2 L 705.0,400.0 L 704.7,395.3 L 702.3,394.1 L 702.1,392.2 L 697.8,389.7 L 691.9,389.4 L 690.4,384.8 L 684.0,388.0 L 677.8,386.5 L 667.1,391.8 L 662.6,390.0 L 655.6,381.3 L 645.4,387.2 L 637.5,395.6 L 630.6,400.1 L 629.0,408.6 L 626.5,414.5 L 635.7,419.2 L 640.3,424.4 L 649.2,428.8 L 652.2,432.8 L 655.7,430.7 L 661.2,433.1 L 667.7,427.1 Z ", "DEU": "M 650.2,475.7 L 647.1,470.1 L 652.0,463.2 L 655.7,452.6 L 655.2,445.6 L 661.2,433.1 L 655.7,430.7 L 652.2,432.8 L 649.2,428.8 L 640.3,424.4 L 635.7,419.2 L 626.5,414.5 L 629.0,408.6 L 630.6,400.1 L 637.5,395.6 L 645.4,387.2 L 641.1,377.8 L 636.4,375.0 L 638.8,362.0 L 637.7,358.5 L 633.3,362.5 L 626.7,362.9 L 617.1,359.0 L 605.0,359.7 L 603.1,354.4 L 596.2,360.0 L 592.1,358.9 L 577.6,365.2 L 574.7,360.9 L 563.1,361.4 L 565.3,375.7 L 572.4,389.2 L 553.5,393.6 L 547.6,399.2 L 548.8,408.0 L 546.4,412.6 L 548.6,426.2 L 547.6,447.3 L 555.1,447.0 L 558.6,454.4 L 562.4,472.7 L 560.4,479.6 L 563.0,483.8 L 573.0,484.5 L 575.1,480.0 L 583.4,489.8 L 580.8,497.4 L 580.5,508.8 L 589.3,506.0 L 596.7,509.1 L 596.9,501.3 L 608.8,496.6 L 608.8,489.5 L 620.7,493.5 L 627.2,499.2 L 640.8,491.9 L 646.8,485.8 L 650.2,475.7 Z ", "DNK": "M 589.3,506.0 L 580.5,508.8 L 576.1,520.1 L 576.3,540.7 L 578.3,546.1 L 581.6,552.1 L 591.3,553.2 L 595.2,558.7 L 603.9,564.4 L 603.6,554.1 L 600.4,547.5 L 601.7,541.8 L 607.8,538.8 L 605.2,531.2 L 601.8,533.4 L 593.6,518.9 L 596.7,509.1 L 589.3,506.0 Z M 628.3,522.3 L 622.0,505.7 L 609.6,516.8 L 607.9,525.2 L 624.3,532.2 L 628.3,522.3 Z ", "ESP": "M 317.2,188.9 L 324.5,194.9 L 327.7,199.7 L 323.6,206.8 L 330.5,218.7 L 326.8,231.9 L 333.7,231.9 L 336.3,241.1 L 339.3,243.4 L 342.7,258.7 L 350.6,262.5 L 348.5,273.3 L 340.1,275.9 L 337.1,274.0 L 328.4,276.1 L 327.0,286.6 L 320.4,285.2 L 314.0,281.6 L 318.0,295.4 L 314.2,305.4 L 337.7,314.4 L 354.3,306.7 L 373.5,302.6 L 388.1,296.2 L 400.3,295.0 L 423.5,290.3 L 428.2,281.7 L 454.0,268.8 L 459.9,272.4 L 475.5,261.4 L 493.0,262.3 L 492.8,250.6 L 477.3,238.7 L 457.5,236.7 L 455.3,230.2 L 444.7,220.4 L 436.7,205.0 L 441.5,192.8 L 431.3,185.2 L 426.2,172.8 L 413.7,170.6 L 400.3,157.2 L 379.8,160.3 L 364.6,163.5 L 353.4,158.5 L 345.9,152.3 L 338.3,155.5 L 333.6,163.4 L 331.3,175.7 L 317.1,182.1 L 317.2,188.9 Z ", "EST": "M 780.2,622.8 L 782.7,619.8 L 778.5,606.7 L 786.4,589.2 L 783.5,581.9 L 774.8,579.8 L 764.0,585.0 L 758.9,586.4 L 750.7,581.1 L 749.5,593.0 L 746.2,589.7 L 738.2,595.5 L 735.0,606.7 L 746.6,614.7 L 758.6,620.3 L 770.1,619.6 L 780.2,622.8 L 780.2,622.8 L 780.2,622.8 Z ", "FIN": "M 734.6,796.3 L 749.8,786.7 L 747.5,770.2 L 763.5,751.0 L 763.4,732.9 L 775.4,720.8 L 776.0,707.2 L 793.2,698.0 L 793.1,687.2 L 788.3,673.5 L 775.6,643.1 L 775.6,643.1 L 775.6,643.1 L 758.5,637.2 L 743.0,626.2 L 727.7,618.8 L 719.9,628.6 L 709.3,633.5 L 708.0,653.4 L 700.4,670.6 L 702.7,682.9 L 708.5,696.7 L 723.6,721.9 L 728.2,727.2 L 725.3,735.3 L 711.9,742.2 L 707.5,749.3 L 700.7,779.4 L 686.3,790.6 L 674.9,798.7 L 678.2,804.6 L 688.2,795.5 L 697.4,798.3 L 706.2,795.2 L 710.9,805.4 L 710.6,820.4 L 719.2,829.6 L 730.2,824.4 L 731.5,810.1 L 734.6,796.3 Z ", "FRA": "M 553.5,393.6 L 572.4,389.2 L 565.3,375.7 L 563.1,361.4 L 559.3,358.1 L 553.1,360.2 L 553.3,355.1 L 542.8,344.3 L 542.1,335.2 L 548.9,338.0 L 553.3,329.0 L 552.5,323.3 L 556.4,315.6 L 551.2,309.7 L 554.3,294.0 L 562.0,291.2 L 560.1,282.5 L 546.4,271.7 L 517.7,278.9 L 495.8,274.2 L 493.0,262.3 L 475.5,261.4 L 459.9,272.4 L 454.0,268.8 L 428.2,281.7 L 423.5,290.3 L 432.7,301.1 L 441.2,340.3 L 430.2,363.5 L 422.0,375.2 L 403.0,386.7 L 404.5,401.4 L 422.2,402.5 L 443.3,393.6 L 442.8,416.8 L 453.6,406.3 L 485.8,417.9 L 491.5,433.8 L 503.0,436.7 L 504.1,429.4 L 510.0,428.5 L 515.2,419.9 L 523.4,409.7 L 530.2,410.8 L 541.0,400.9 L 543.8,399.0 L 547.6,399.2 L 553.5,393.6 Z M 588.6,268.2 L 591.0,251.0 L 585.9,235.6 L 579.1,239.7 L 575.8,253.3 L 578.9,260.7 L 588.6,268.2 Z ", "GBR": "M 398.8,514.2 L 391.6,515.7 L 396.6,525.6 L 397.0,536.7 L 406.5,535.2 L 415.8,520.3 L 406.5,508.1 L 398.8,514.2 Z M 441.0,491.4 L 444.8,502.7 L 439.4,516.3 L 439.3,516.7 L 426.1,522.9 L 424.6,528.8 L 430.5,536.8 L 428.0,543.0 L 420.0,535.0 L 423.6,554.1 L 420.5,565.4 L 429.1,584.9 L 440.8,599.1 L 448.7,595.8 L 461.5,595.1 L 446.0,575.8 L 457.4,576.4 L 469.0,574.3 L 463.3,558.6 L 450.2,542.5 L 461.5,539.2 L 462.0,537.0 L 468.2,511.8 L 475.6,507.4 L 479.6,483.7 L 482.0,475.3 L 496.2,469.7 L 493.2,457.0 L 486.2,451.9 L 489.9,441.0 L 477.3,431.9 L 460.4,434.4 L 438.1,432.4 L 432.9,437.3 L 422.9,429.6 L 411.6,434.1 L 401.2,428.4 L 395.3,433.8 L 417.9,450.7 L 429.8,452.9 L 429.7,452.9 L 411.2,460.0 L 409.4,468.6 L 423.3,472.1 L 418.9,484.1 L 423.8,496.6 L 440.9,491.5 L 441.0,491.4 Z ", "GRC": "M 865.4,136.5 L 842.2,130.0 L 841.8,133.3 L 821.3,133.4 L 823.0,142.3 L 832.9,137.3 L 845.4,140.9 L 857.8,141.9 L 858.0,138.4 L 866.4,142.7 L 865.4,136.5 Z M 804.8,252.9 L 815.7,260.6 L 827.5,255.8 L 840.6,260.5 L 838.8,270.4 L 847.1,266.7 L 845.0,253.4 L 841.9,250.4 L 832.7,249.0 L 824.5,249.3 L 807.2,240.7 L 819.6,231.5 L 812.4,226.9 L 803.9,225.3 L 794.2,234.1 L 792.1,229.3 L 797.3,218.0 L 806.5,210.1 L 801.3,204.7 L 811.4,197.1 L 820.1,192.8 L 822.2,181.7 L 806.8,184.3 L 813.0,175.1 L 803.2,171.3 L 811.9,154.9 L 801.3,152.8 L 786.8,159.3 L 778.7,174.2 L 774.2,187.0 L 766.9,195.2 L 757.5,205.5 L 755.7,211.0 L 761.7,221.6 L 761.8,228.2 L 766.4,231.8 L 766.0,237.0 L 775.6,240.3 L 780.7,245.5 L 788.9,246.5 L 790.9,250.4 L 793.6,251.5 L 804.8,252.9 Z ", "HRV": "M 693.4,340.3 L 704.6,332.7 L 716.6,330.1 L 721.5,333.7 L 725.8,326.4 L 730.9,321.3 L 726.4,313.1 L 719.4,316.7 L 709.7,315.4 L 697.2,317.5 L 690.6,316.4 L 687.8,312.0 L 682.4,316.2 L 680.0,307.6 L 687.8,298.8 L 691.4,292.9 L 698.7,286.0 L 704.7,282.1 L 711.0,274.3 L 724.8,268.2 L 723.5,264.6 L 723.5,264.6 L 708.9,270.5 L 699.7,276.9 L 685.8,281.7 L 672.5,295.5 L 675.4,297.2 L 668.2,305.2 L 667.6,311.9 L 658.2,314.5 L 654.3,305.6 L 649.8,312.1 L 649.8,319.1 L 650.2,319.5 L 660.1,319.3 L 662.5,322.9 L 667.5,319.9 L 673.1,319.9 L 672.7,325.5 L 677.4,327.9 L 678.2,336.1 L 688.8,342.4 L 693.4,340.3 Z ", "HUN": "M 767.0,386.0 L 768.9,380.8 L 761.4,375.3 L 757.1,360.7 L 750.8,346.0 L 740.3,340.6 L 731.5,340.3 L 721.5,333.7 L 721.5,333.7 L 716.6,330.1 L 704.6,332.7 L 693.4,340.3 L 688.8,342.4 L 685.6,348.9 L 683.2,348.9 L 686.7,362.2 L 683.7,366.3 L 691.3,367.1 L 691.6,375.4 L 698.9,370.9 L 704.1,369.2 L 715.1,373.0 L 715.8,377.1 L 721.0,378.3 L 727.1,382.3 L 728.7,381.2 L 734.6,384.5 L 737.1,389.7 L 741.2,391.5 L 756.3,387.7 L 758.8,390.2 L 767.0,386.0 Z ", "IRL": "M 405.3,493.6 L 392.2,478.0 L 368.0,471.8 L 351.8,479.3 L 367.1,497.1 L 366.5,518.6 L 386.1,529.7 L 397.0,536.7 L 396.6,525.6 L 391.6,515.7 L 398.8,514.2 L 406.5,508.1 L 405.3,493.6 Z ", "ISL": "M 396.3,763.1 L 400.1,747.0 L 384.0,736.4 L 355.0,733.1 L 346.4,732.8 L 337.0,740.3 L 317.9,757.0 L 329.8,761.0 L 318.2,778.4 L 333.3,774.9 L 335.9,780.3 L 322.9,792.6 L 334.4,801.5 L 346.7,798.4 L 351.5,780.6 L 367.7,785.2 L 374.6,775.9 L 391.2,780.7 L 403.0,774.6 L 396.3,763.1 Z ", "ITA": "M 612.1,343.4 L 613.7,347.3 L 627.2,351.1 L 630.5,344.2 L 650.5,339.8 L 649.5,329.8 L 653.3,321.5 L 641.9,323.9 L 630.7,316.3 L 631.8,306.4 L 630.2,300.6 L 635.2,290.5 L 649.3,281.0 L 657.5,264.8 L 675.0,249.7 L 686.8,250.7 L 690.8,246.5 L 686.8,242.2 L 701.0,236.1 L 712.7,231.2 L 726.8,222.1 L 728.8,218.6 L 726.6,211.2 L 717.1,219.5 L 703.5,221.5 L 698.0,208.1 L 709.9,201.7 L 708.9,191.1 L 702.4,189.3 L 695.2,171.6 L 688.7,169.5 L 688.3,175.6 L 690.8,186.5 L 694.0,191.1 L 687.0,202.1 L 681.6,211.9 L 675.0,213.9 L 670.0,222.2 L 659.9,225.3 L 652.9,233.0 L 641.6,233.8 L 629.5,242.5 L 615.5,255.2 L 605.2,266.6 L 600.5,286.4 L 593.3,288.8 L 581.6,295.5 L 574.8,292.9 L 566.2,283.8 L 560.1,282.5 L 562.0,291.2 L 554.3,294.0 L 551.2,309.7 L 556.4,315.6 L 552.5,323.3 L 553.3,329.0 L 559.2,324.4 L 566.0,325.2 L 574.1,331.8 L 576.4,328.5 L 583.1,329.0 L 586.2,337.1 L 596.5,334.5 L 602.7,337.9 L 603.7,346.2 L 612.1,343.4 Z M 685.7,175.7 L 680.9,159.7 L 683.7,153.7 L 680.9,143.2 L 668.0,149.9 L 659.7,151.6 L 636.8,160.9 L 638.7,171.2 L 657.5,170.1 L 673.7,173.2 L 685.7,175.7 Z M 585.6,232.2 L 594.7,217.9 L 592.4,191.5 L 585.3,192.8 L 578.8,186.2 L 572.9,191.6 L 572.7,215.7 L 569.5,227.2 L 577.9,226.1 L 585.6,232.2 Z ", "LTU": "M 787.1,534.7 L 779.4,526.3 L 779.2,514.6 L 768.3,504.5 L 757.0,502.4 L 753.0,508.0 L 746.7,509.0 L 744.9,513.9 L 745.1,519.6 L 739.5,521.9 L 727.0,523.4 L 721.9,539.8 L 733.6,547.9 L 752.3,550.1 L 762.6,554.2 L 765.0,550.4 L 771.2,550.4 L 784.0,543.3 L 787.1,534.7 Z ", "LUX": "M 548.8,408.0 L 547.6,399.2 L 543.8,399.0 L 541.0,400.9 L 543.0,412.1 L 546.4,412.6 L 548.8,408.0 Z ", "LVA": "M 789.7,578.6 L 793.1,569.4 L 799.6,558.7 L 789.9,548.2 L 784.0,543.3 L 771.2,550.4 L 765.0,550.4 L 762.6,554.2 L 752.3,550.1 L 733.6,547.9 L 721.9,539.8 L 719.9,554.8 L 723.1,568.2 L 732.0,576.7 L 743.3,563.4 L 751.9,565.5 L 750.7,581.1 L 758.9,586.4 L 764.0,585.0 L 774.8,579.8 L 783.5,581.9 L 789.7,578.6 Z ", "MDA": "M 821.6,401.6 L 829.8,405.6 L 840.8,401.9 L 846.3,402.5 L 853.6,398.8 L 854.3,391.9 L 859.9,390.0 L 864.0,382.3 L 869.9,378.6 L 869.7,375.5 L 872.7,374.2 L 869.6,371.7 L 861.5,370.2 L 859.5,372.5 L 857.1,370.2 L 858.9,367.0 L 856.8,359.8 L 856.0,352.4 L 853.1,349.4 L 848.5,357.8 L 848.0,366.5 L 845.5,375.0 L 835.1,384.8 L 828.9,392.1 L 823.5,397.0 L 819.1,398.0 L 821.6,401.6 Z ", "MKD": "M 790.5,264.4 L 793.6,251.5 L 790.9,250.4 L 788.9,246.5 L 780.7,245.5 L 775.6,240.3 L 766.0,237.0 L 759.0,241.0 L 755.8,249.2 L 756.8,256.2 L 756.8,256.2 L 758.7,256.3 L 758.9,260.5 L 767.2,264.9 L 770.4,266.2 L 775.3,268.1 L 782.1,269.6 L 790.5,264.4 Z ", "NLD": "M 562.4,472.7 L 558.6,454.4 L 555.1,447.0 L 547.6,447.3 L 548.6,426.2 L 541.9,431.2 L 534.5,440.6 L 522.5,437.3 L 513.4,439.6 L 513.4,439.6 L 520.4,444.6 L 533.5,473.3 L 550.5,480.7 L 560.4,479.6 L 562.4,472.7 Z ", "NOR": "M 736.5,813.5 L 731.5,810.1 L 730.2,824.4 L 719.2,829.6 L 710.6,820.4 L 710.9,805.4 L 706.2,795.2 L 697.4,798.3 L 688.2,795.5 L 678.2,804.6 L 674.9,798.7 L 670.5,797.2 L 671.6,784.0 L 657.1,785.4 L 656.6,774.1 L 649.3,773.4 L 645.6,758.7 L 639.6,736.0 L 628.4,707.0 L 632.0,700.4 L 629.4,692.2 L 620.5,692.2 L 615.3,673.2 L 616.7,646.5 L 623.2,636.6 L 620.8,612.8 L 612.7,598.8 L 608.4,587.1 L 601.3,599.4 L 580.4,576.3 L 566.1,572.1 L 551.9,583.1 L 549.7,604.9 L 549.9,651.4 L 559.5,663.7 L 584.5,679.6 L 602.2,700.2 L 617.2,728.5 L 634.3,768.0 L 645.6,784.1 L 662.2,811.2 L 675.9,822.1 L 687.3,823.1 L 693.7,841.3 L 705.7,843.2 L 716.1,850.0 L 740.7,842.1 L 734.1,834.3 L 745.6,824.7 L 736.5,813.5 Z ", "POL": "M 759.2,493.7 L 763.9,486.8 L 765.4,478.9 L 758.9,473.5 L 764.4,465.0 L 766.3,456.2 L 775.8,440.0 L 775.5,434.2 L 769.7,430.7 L 761.0,412.1 L 765.8,403.8 L 762.8,404.4 L 749.2,410.0 L 740.3,405.8 L 733.9,406.9 L 726.8,401.6 L 719.3,407.8 L 714.3,404.4 L 713.4,405.5 L 706.3,414.7 L 696.6,414.8 L 694.7,421.0 L 685.8,422.4 L 684.3,417.0 L 677.0,420.5 L 677.3,426.1 L 667.7,427.1 L 661.2,433.1 L 655.2,445.6 L 655.7,452.6 L 652.0,463.2 L 647.1,470.1 L 650.2,475.7 L 646.8,485.8 L 654.5,492.2 L 672.1,502.9 L 686.1,511.1 L 698.0,509.0 L 699.5,504.2 L 710.8,505.4 L 725.4,505.2 L 746.7,509.0 L 753.0,508.0 L 757.0,502.4 L 759.2,493.7 Z ", "PRT": "M 320.4,285.2 L 327.0,286.6 L 328.4,276.1 L 337.1,274.0 L 340.1,275.9 L 348.5,273.3 L 350.6,262.5 L 342.7,258.7 L 339.3,243.4 L 336.3,241.1 L 333.7,231.9 L 326.8,231.9 L 330.5,218.7 L 323.6,206.8 L 327.7,199.7 L 324.5,194.9 L 317.2,188.9 L 317.1,182.1 L 309.8,178.5 L 302.0,183.2 L 293.4,183.1 L 299.2,197.8 L 300.5,210.2 L 294.0,213.7 L 292.1,222.1 L 296.3,234.6 L 304.0,240.1 L 306.9,247.7 L 312.7,258.7 L 314.3,267.1 L 313.0,274.9 L 314.0,281.6 L 320.4,285.2 Z ", "ROU": "M 860.1,347.4 L 865.8,352.2 L 872.8,350.5 L 874.4,345.6 L 868.8,339.6 L 864.1,340.3 L 865.9,315.6 L 857.1,315.6 L 845.3,320.3 L 829.6,311.9 L 823.6,305.4 L 802.4,302.2 L 790.8,303.2 L 785.5,300.8 L 780.1,308.2 L 776.9,311.3 L 779.7,315.2 L 775.8,317.0 L 772.0,311.8 L 762.9,316.3 L 760.6,324.3 L 751.3,327.7 L 748.9,333.8 L 740.3,340.6 L 750.8,346.0 L 757.1,360.7 L 761.4,375.3 L 768.9,380.8 L 773.9,386.1 L 782.5,385.4 L 791.0,387.0 L 798.0,383.4 L 802.0,387.4 L 811.3,391.4 L 813.6,396.7 L 819.1,398.0 L 823.5,397.0 L 828.9,392.1 L 835.1,384.8 L 845.5,375.0 L 848.0,366.5 L 848.5,357.8 L 853.1,349.4 L 860.1,347.4 Z ", "SRB": "M 721.5,333.7 L 731.5,340.3 L 740.3,340.6 L 748.9,333.8 L 751.3,327.7 L 760.6,324.3 L 762.9,316.3 L 772.0,311.8 L 775.8,317.0 L 779.7,315.2 L 776.9,311.3 L 780.1,308.2 L 777.3,303.1 L 779.7,296.1 L 788.1,288.7 L 783.6,281.6 L 782.1,274.8 L 784.1,272.8 L 782.1,269.6 L 775.3,268.1 L 770.4,266.2 L 769.7,267.6 L 771.1,270.2 L 772.1,275.3 L 770.0,274.9 L 766.6,278.1 L 764.1,278.7 L 761.7,281.6 L 758.8,282.4 L 756.4,284.9 L 753.9,283.4 L 752.8,276.5 L 749.4,274.6 L 750.4,276.5 L 744.3,279.8 L 739.2,281.4 L 736.8,283.8 L 732.5,286.8 L 735.8,288.1 L 736.8,297.7 L 729.0,304.5 L 731.5,313.8 L 726.4,313.1 L 726.4,313.1 L 730.9,321.3 L 725.8,326.4 L 721.5,333.7 L 721.5,333.7 Z ", "SVK": "M 760.1,398.6 L 758.8,390.2 L 756.3,387.7 L 741.2,391.5 L 737.1,389.7 L 734.6,384.5 L 728.7,381.2 L 727.1,382.3 L 721.0,378.3 L 715.8,377.1 L 715.1,373.0 L 704.1,369.2 L 698.9,370.9 L 691.6,375.4 L 689.6,382.2 L 690.4,384.8 L 691.9,389.4 L 697.8,389.7 L 702.1,392.2 L 702.3,394.1 L 704.7,395.3 L 705.0,400.0 L 707.9,401.2 L 709.6,405.0 L 713.4,405.5 L 714.3,404.4 L 719.3,407.8 L 726.8,401.6 L 733.9,406.9 L 740.3,405.8 L 749.2,410.0 L 762.8,404.4 L 760.1,398.6 Z ", "SVN": "M 662.1,338.9 L 668.8,343.9 L 680.9,345.3 L 683.2,348.9 L 685.6,348.9 L 688.8,342.4 L 678.2,336.1 L 677.4,327.9 L 672.7,325.5 L 673.1,319.9 L 667.5,319.9 L 662.5,322.9 L 660.1,319.3 L 650.2,319.5 L 653.3,321.5 L 649.5,329.8 L 650.5,339.8 L 662.1,338.9 Z ", "SWE": "M 612.7,598.8 L 620.8,612.8 L 623.2,636.6 L 616.7,646.5 L 615.3,673.2 L 620.5,692.2 L 629.4,692.2 L 632.0,700.4 L 628.4,707.0 L 639.6,736.0 L 645.6,758.7 L 649.3,773.4 L 656.6,774.1 L 657.1,785.4 L 671.6,784.0 L 670.5,797.2 L 674.9,798.7 L 686.3,790.6 L 700.7,779.4 L 707.5,749.3 L 711.9,742.2 L 699.0,733.9 L 693.5,718.8 L 696.9,706.9 L 685.6,688.8 L 670.4,669.4 L 666.7,640.5 L 675.3,627.2 L 686.1,617.2 L 679.6,593.6 L 669.3,587.7 L 668.4,553.7 L 663.8,534.4 L 650.1,535.3 L 644.6,519.0 L 631.4,517.4 L 627.1,536.3 L 617.1,558.8 L 608.4,587.1 L 612.7,598.8 Z ", "UKR": "M 867.9,491.8 L 869.4,497.1 L 873.3,497.3 L 884.7,503.2 L 895.9,494.9 L 894.3,490.0 L 897.3,484.4 L 907.1,486.8 L 914.2,480.1 L 915.3,476.2 L 932.9,475.2 L 940.9,481.8 L 951.7,475.9 L 958.6,479.0 L 978.6,480.4 L 981.0,475.0 L 980.3,463.0 L 987.3,453.8 L 987.9,446.7 L 976.6,440.2 L 972.2,432.3 L 975.1,423.7 L 965.5,418.1 L 959.3,408.6 L 947.6,403.1 L 938.9,391.9 L 943.0,381.8 L 940.8,381.7 L 937.8,384.9 L 933.3,384.2 L 922.6,385.2 L 920.7,379.2 L 918.2,380.7 L 896.1,379.1 L 893.1,386.1 L 881.5,380.0 L 879.5,367.9 L 872.8,350.5 L 865.8,352.2 L 860.1,347.4 L 853.1,349.4 L 856.0,352.4 L 856.8,359.8 L 858.9,367.0 L 857.1,370.2 L 859.5,372.5 L 861.5,370.2 L 869.6,371.7 L 872.7,374.2 L 869.7,375.5 L 869.9,378.6 L 864.0,382.3 L 859.9,390.0 L 854.3,391.9 L 853.6,398.8 L 846.3,402.5 L 840.8,401.9 L 829.8,405.6 L 821.6,401.6 L 819.1,398.0 L 813.6,396.7 L 811.3,391.4 L 802.0,387.4 L 798.0,383.4 L 791.0,387.0 L 782.5,385.4 L 773.9,386.1 L 768.9,380.8 L 767.0,386.0 L 758.8,390.2 L 760.1,398.6 L 762.8,404.4 L 765.8,403.8 L 761.0,412.1 L 769.7,430.7 L 775.5,434.2 L 775.8,440.0 L 766.3,456.2 L 772.0,458.1 L 777.6,464.8 L 787.0,467.2 L 799.5,468.4 L 814.2,466.8 L 823.8,468.8 L 829.1,467.2 L 832.7,471.8 L 837.1,468.1 L 847.8,472.1 L 853.1,471.6 L 851.0,481.6 L 853.4,487.0 L 863.2,491.2 L 867.9,491.8 Z "};
+const LABELS = {"ALB": {"x": 745.2, "y": 232.0, "text": "AL"}, "AUT": {"x": 661.6, "y": 364.6, "text": "AT"}, "BEL": {"x": 520.7, "y": 426.0, "text": "BE"}, "BGR": {"x": 824.0, "y": 285.2, "text": "BG"}, "BIH": {"x": 728.0, "y": 277.5, "text": "BA"}, "CHE": {"x": 570.7, "y": 335.2, "text": "CH"}, "CZE": {"x": 670.8, "y": 407.0, "text": "CZ"}, "DEU": {"x": 599.9, "y": 431.7, "text": "DE"}, "DNK": {"x": 599.6, "y": 541.1, "text": "DK"}, "ESP": {"x": 395.5, "y": 234.3, "text": "ES"}, "EST": {"x": 758.8, "y": 605.1, "text": "EE"}, "FIN": {"x": 748.8, "y": 724.6, "text": "FI"}, "FRA": {"x": 492.4, "y": 349.7, "text": "FR"}, "GBR": {"x": 454.0, "y": 514.1, "text": "GB"}, "GRC": {"x": 779.5, "y": 214.5, "text": "GR"}, "HRV": {"x": 690.0, "y": 295.0, "text": "HR"}, "HUN": {"x": 721.9, "y": 361.5, "text": "HU"}, "IRL": {"x": 386.5, "y": 502.6, "text": "IE"}, "ISL": {"x": 362.1, "y": 768.8, "text": "IS"}, "ITA": {"x": 637.1, "y": 260.0, "text": "IT"}, "LTU": {"x": 754.0, "y": 530.5, "text": "LT"}, "LUX": {"x": 536.9, "y": 394.4, "text": "LU"}, "LVA": {"x": 759.8, "y": 565.1, "text": "LV"}, "MDA": {"x": 869.6, "y": 381.0, "text": "MD"}, "MKD": {"x": 782.8, "y": 240.9, "text": "MK"}, "NLD": {"x": 547.1, "y": 461.9, "text": "NL"}, "NOR": {"x": 622.0, "y": 717.7, "text": "NO"}, "POL": {"x": 709.4, "y": 459.7, "text": "PL"}, "PRT": {"x": 315.0, "y": 233.3, "text": "PT"}, "ROU": {"x": 804.2, "y": 348.4, "text": "RO"}, "SRB": {"x": 770.7, "y": 300.8, "text": "RS"}, "SVK": {"x": 725.9, "y": 396.5, "text": "SK"}, "SVN": {"x": 659.9, "y": 321.0, "text": "SI"}, "SWE": {"x": 642.5, "y": 658.0, "text": "SE"}, "UKR": {"x": 871.0, "y": 427.2, "text": "UA"}};
+const START_YEAR=1995, END_YEAR=2024;
+const DATA_URL='https://ourworldindata.org/grapher/gdp-per-capita-worldbank.csv?v=1&csvType=full&useColumnShortNames=false';
+const CACHE_KEY='europe-3d-economic-map-data-v1';
+let data={}, currentYear=START_YEAR, mode='level', playing=false, timer=null, heightEnabled=true;
+let levelMin=5000, levelMax=90000, selectedCode='DEU', hoveredCode=null;
+const countryObjects=new Map(), countryMeshes=[];
+const app=document.getElementById('app');
+const sceneHost=document.getElementById('scene');
+const labelsHost=document.getElementById('labels');
+const tooltip=document.getElementById('tooltip');
+const slider=document.getElementById('yearSlider');
+const yearNow=document.getElementById('yearNow');
+const scene=new THREE.Scene();
+scene.fog=new THREE.FogExp2(0x07111d,0.028);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.15;
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+sceneHost.appendChild(renderer.domElement);
+const labelRenderer=new CSS2DRenderer();
+labelRenderer.setSize(innerWidth,innerHeight);
+labelRenderer.domElement.id='labels';
+labelRenderer.domElement.style.position='absolute';
+labelRenderer.domElement.style.inset='0';
+labelRenderer.domElement.style.pointerEvents='none';
+labelsHost.replaceWith(labelRenderer.domElement);
+let viewSize=17;
+const camera=new THREE.OrthographicCamera(-viewSize,viewSize,viewSize,-viewSize,0.1,120);
+const controls=new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true; controls.dampingFactor=.06; controls.enablePan=false;
+controls.minZoom=.65; controls.maxZoom=2.7;
+controls.minPolarAngle=.46; controls.maxPolarAngle=1.25;
+controls.target.set(0,.55,0);
+function setIsoView(){
+  camera.position.set(13.5,15.2,15.6); camera.zoom=1; camera.updateProjectionMatrix();
+  controls.target.set(0,.45,0); controls.update();
+}
+setIsoView();
+scene.add(new THREE.HemisphereLight(0xa6d8ff,0x07111d,1.65));
+const key=new THREE.DirectionalLight(0xe6f4ff,3.1);key.position.set(-7,16,10);key.castShadow=true;key.shadow.mapSize.set(2048,2048);key.shadow.camera.left=-14;key.shadow.camera.right=14;key.shadow.camera.top=14;key.shadow.camera.bottom=-14;scene.add(key);
+const rim=new THREE.DirectionalLight(0x3b9cff,1.55);rim.position.set(12,8,-10);scene.add(rim);
+const warm=new THREE.PointLight(0xffad43,28,20,2.2);warm.position.set(-1.5,5,2);scene.add(warm);
+const oceanMat=new THREE.MeshStandardMaterial({color:0x071725,roughness:.98,metalness:.08});
+const ocean=new THREE.Mesh(new THREE.PlaneGeometry(34,27),oceanMat);ocean.rotation.x=-Math.PI/2;ocean.position.y=-.18;ocean.receiveShadow=true;scene.add(ocean);
+const grid=new THREE.GridHelper(34,34,0x28506c,0x163348);grid.position.y=-.16;grid.material.opacity=.28;grid.material.transparent=true;scene.add(grid);
+// Decorative longitude/latitude glows around the map.
+const ringMat=new THREE.LineBasicMaterial({color:0x2e6385,transparent:true,opacity:.13});
+for(let r=7;r<=15;r+=4){const pts=[];for(let i=0;i<=96;i++){const a=i/96*Math.PI*2;pts.push(new THREE.Vector3(Math.cos(a)*r,-.145,Math.sin(a)*r*.72));}scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),ringMat));}
+const mapRoot=new THREE.Group();
+mapRoot.rotation.x=-Math.PI/2;
+mapRoot.scale.setScalar(.0205);
+scene.add(mapRoot);
+function colorToHex(c){return '#'+c.getHexString()}
+function hexToRgb(h){h=h.replace('#','');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]}
+function mix(a,b,t){const A=hexToRgb(a),B=hexToRgb(b);return '#'+A.map((x,i)=>Math.round(x+(B[i]-x)*t).toString(16).padStart(2,'0')).join('')}
+const LEVEL_STOPS=['#143a87','#1764b8','#1f99c9','#2bcfd0','#8dd69b','#ffd05a','#ffae38'];
+const INDEX_STOPS=['#5b3e79','#385f9c','#2a97b5','#32c9bd','#9bd17c','#f4be4f'];
+function ramp(t,p=LEVEL_STOPS){t=Math.max(0,Math.min(1,t));const q=t*(p.length-1),i=Math.floor(q),f=q-i;return i>=p.length-1?p[p.length-1]:mix(p[i],p[i+1],f)}
+function darken(hex,f=.38){const [r,g,b]=hexToRgb(hex);return '#'+[r,g,b].map(v=>Math.round(v*f).toString(16).padStart(2,'0')).join('')}
+function buildCountry(code){
+  const loader=new SVGLoader();
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg"><path d="${PATHS[code]}"/></svg>`;
+  const parsed=loader.parse(svg);
+  const root=new THREE.Group(); root.userData.code=code;
+  const topMat=new THREE.MeshStandardMaterial({color:0x268bc0,roughness:.44,metalness:.16,emissive:0x000000,emissiveIntensity:.18});
+  const sideMat=new THREE.MeshStandardMaterial({color:0x0d3658,roughness:.58,metalness:.25,emissive:0x06111d,emissiveIntensity:.32});
+  root.userData.topMat=topMat; root.userData.sideMat=sideMat;
+  const meshList=[];
+  for(const path of parsed.paths){
+    const shapes=SVGLoader.createShapes(path);
+    for(const shape of shapes){
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:46,bevelEnabled:false,curveSegments:1,steps:1});
+      geometry.computeVertexNormals();
+      const mesh=new THREE.Mesh(geometry,[topMat,sideMat]);
+      mesh.castShadow=true; mesh.receiveShadow=true; mesh.userData.code=code;
+      root.add(mesh); meshList.push(mesh); countryMeshes.push(mesh);
+      const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geometry,28),new THREE.LineBasicMaterial({color:0xb9e7ff,transparent:true,opacity:.58}));
+      edges.userData.code=code; root.add(edges);
+    }
+  }
+  const pos=LABELS[code];
+  const div=document.createElement('div');div.className='country-label';div.textContent=code;
+  const label=new CSS2DObject(div);label.position.set(pos.x,pos.y,54);root.add(label);root.userData.label=div;root.userData.labelObj=label;
+  mapRoot.add(root); countryObjects.set(code,root);
+}
+COUNTRY_CODES.forEach(buildCountry);
+mapRoot.updateMatrixWorld(true);
+let box=new THREE.Box3().setFromObject(mapRoot);let center=box.getCenter(new THREE.Vector3());
+mapRoot.position.x-=center.x; mapRoot.position.z-=center.z;
+mapRoot.updateMatrixWorld(true);
+box=new THREE.Box3().setFromObject(mapRoot);
+function parseCSV(text){
+  const rows=[];let row=[],cell='',q=false;
+  for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'){if(q&&text[i+1]==='"'){cell+='"';i++;}else q=!q;}else if(c===','&&!q){row.push(cell);cell='';}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(x=>x!==''))rows.push(row);row=[];cell='';}else cell+=c;}if(cell||row.length){row.push(cell);rows.push(row)}return rows;
+}
+function rowsToData(rows){
+  const h=rows[0],iCode=h.indexOf('Code'),iYear=h.indexOf('Year');
+  let iVal=h.findIndex((x,i)=>i!==iCode&&i!==iYear&&/GDP per capita/i.test(x));if(iVal<0)iVal=h.length-1;
+  const out={};COUNTRY_CODES.forEach(c=>out[c]={});
+  for(const r of rows.slice(1)){const c=r[iCode];if(!out[c])continue;const y=+r[iYear],v=+r[iVal];if(y>=START_YEAR&&y<=END_YEAR&&Number.isFinite(v))out[c][y]=v;}return out;
+}
+function makeDemoData(){
+  // Deterministic visual fallback only. The UI clearly marks this as demo data.
+  const anchors={DEU:62000,LUX:125000,IRL:106000,NOR:92000,CHE:82000,NLD:72000,DNK:74000,SWE:69000,ISL:72000,AUT:68000,BEL:65000,FIN:61000,GBR:59000,FRA:55000,ITA:51000,ESP:50000,CZE:53000,SVN:52000,LTU:49000,EST:47000,POL:46000,PRT:45000,SVK:45000,HUN:41000,ROU:40000,HRV:39000,BGR:35000,GRC:38000,SRB:30000,MKD:26000,ALB:22000,BIH:21000,MDA:17000,UKR:15000,LVA:44000};
+  const out={};COUNTRY_CODES.forEach((c,idx)=>{out[c]={};const end=anchors[c]||35000;const start=end*(.42+((idx*17)%13)/100);for(let y=START_YEAR;y<=END_YEAR;y++){const t=(y-START_YEAR)/(END_YEAR-START_YEAR);const wobble=1+.035*Math.sin((y-1994)*.8+idx);const shock=(y===2009?.94:1)*(y===2020?.93:1);out[c][y]=start*Math.pow(end/start,t)*wobble*shock;}});return out;
+}
+function quantile(a,q){const x=[...a].sort((m,n)=>m-n),p=(x.length-1)*q,b=Math.floor(p),r=p-b;return x[b+1]!==undefined?x[b]+r*(x[b+1]-x[b]):x[b]}
+function allValues(){const a=[];for(const c of COUNTRY_CODES)for(let y=START_YEAR;y<=END_YEAR;y++){const v=data[c]?.[y];if(Number.isFinite(v))a.push(v)}return a}
+function valueFor(c,y){return data[c]?.[y]??null}
+function indexFor(c,y){const b=valueFor(c,START_YEAR),v=valueFor(c,y);return b&&v?100*v/b:null}
+function metricValue(c,y){return mode==='level'?valueFor(c,y):indexFor(c,y)}
+function tFor(c,y){
+  const v=metricValue(c,y);if(v==null)return .02;
+  if(mode==='index')return (Math.max(70,Math.min(240,v))-70)/170;
+  const lo=Math.log(levelMin),hi=Math.log(levelMax);return Math.max(0,Math.min(1,(Math.log(Math.max(v,1))-lo)/(hi-lo)));
+}
+function colorFor(c,y){return ramp(tFor(c,y),mode==='level'?LEVEL_STOPS:INDEX_STOPS)}
+function heightFor(c,y){if(!heightEnabled)return 1;return .58+tFor(c,y)*1.26}
+function money(v){return v==null?'No data':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(v).replace('$','int-$ ')}
+function pct(v){return v==null?'—':`${v>=0?'+':''}${v.toFixed(1)}%`}
+function fmt(v){return mode==='level'?money(v):(v==null?'No data':v.toFixed(1)+' index')}
+function updateCountryVisual(code){
+  const obj=countryObjects.get(code),col=colorFor(code,currentYear),height=heightFor(code,currentYear);
+  obj.scale.z=height;
+  obj.userData.topMat.color.set(col);obj.userData.sideMat.color.set(darken(col,.31));
+  const active=code===selectedCode,hover=code===hoveredCode;
+  obj.userData.topMat.emissive.set(active?0x653f05:hover?0x123653:0x000000);obj.userData.topMat.emissiveIntensity=active?.55:hover?.34:.14;
+  obj.userData.label.classList.toggle('selected',active);
+}
+function update(y){
+  currentYear=+y;yearNow.textContent=currentYear;slider.value=currentYear;slider.style.setProperty('--pct',`${(currentYear-START_YEAR)/(END_YEAR-START_YEAR)*100}%`);
+  COUNTRY_CODES.forEach(updateCountryVisual);updateLegend();updateDetail();
+}
+function updateLegend(){
+  const bar=document.getElementById('legendBar');bar.style.background=`linear-gradient(180deg,${(mode==='level'?LEVEL_STOPS:INDEX_STOPS).slice().reverse().join(',')})`;
+  if(mode==='level'){
+    document.getElementById('legendTitle').textContent='GDP per capita';document.getElementById('legendSub').textContent='PPP, constant 2021 int-$';
+    const vals=[1,.75,.5,.25,0].map(t=>Math.exp(Math.log(levelMin)+(Math.log(levelMax)-Math.log(levelMin))*t));
+    ['l5','l4','l3','l2','l1'].forEach((id,i)=>document.getElementById(id).textContent='$'+Math.round(vals[i]/1000)+'k');
+  }else{
+    document.getElementById('legendTitle').textContent='Growth index';document.getElementById('legendSub').textContent='1995 = 100';
+    ['l5','l4','l3','l2','l1'].forEach((id,i)=>document.getElementById(id).textContent=[240,195,155,115,70][i]);
+  }
+}
+function updateDetail(){
+  if(!selectedCode)return;const m=COUNTRY_META[selectedCode],v=metricValue(selectedCode,currentYear),b=valueFor(selectedCode,START_YEAR),raw=valueFor(selectedCode,currentYear),chg=b&&raw?(raw/b-1)*100:null;
+  document.getElementById('flag').textContent=m.flag;document.getElementById('countryName').textContent=m.name;document.getElementById('countryCode').textContent=`(${selectedCode})`;
+  document.getElementById('detailKicker').textContent=mode==='level'?`GDP per capita (${currentYear})`:`Economic index (${currentYear}, 1995 = 100)`;
+  document.getElementById('detailValue').textContent=fmt(v);const ch=document.getElementById('detailChange');ch.textContent=pct(chg)+' vs. 1995';ch.classList.toggle('down',(chg??0)<0);drawSpark(selectedCode);
+}
+function drawSpark(code){
+  const svg=document.getElementById('sparkline'),vals=[];for(let y=START_YEAR;y<=END_YEAR;y++){const v=metricValue(code,y);if(v!=null)vals.push([y,v])}if(vals.length<2){svg.innerHTML='';return}
+  const W=290,H=76,P=7,min=Math.min(...vals.map(d=>d[1])),max=Math.max(...vals.map(d=>d[1]));const X=y=>P+(y-START_YEAR)/(END_YEAR-START_YEAR)*(W-2*P),Y=v=>H-P-(v-min)/(max-min||1)*(H-2*P);
+  const d=vals.map((v,i)=>(i?'L':'M')+X(v[0]).toFixed(1)+','+Y(v[1]).toFixed(1)).join(' ');const cur=metricValue(code,currentYear),cx=X(currentYear),cy=cur==null?null:Y(cur);
+  svg.innerHTML=`<defs><linearGradient id="lineg"><stop offset="0" stop-color="#2e9feb"/><stop offset="1" stop-color="#ffc14e"/></linearGradient><linearGradient id="fillg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffbf48" stop-opacity=".28"/><stop offset="1" stop-color="#ffbf48" stop-opacity="0"/></linearGradient></defs><path d="${d} L ${X(vals.at(-1)[0])},${H-P} L ${X(vals[0][0])},${H-P} Z" fill="url(#fillg)"/><path d="${d}" fill="none" stroke="url(#lineg)" stroke-width="2.2" vector-effect="non-scaling-stroke"/>${cy==null?'':`<circle cx="${cx}" cy="${cy}" r="4" fill="#fff3c0" stroke="#ffbd48" stroke-width="2"/>`}`;
+}
+function setSelected(code){selectedCode=code;document.getElementById('detailCard').style.display='block';COUNTRY_CODES.forEach(updateCountryVisual);updateDetail();}
+const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
+function pointerCoords(e){const r=renderer.domElement.getBoundingClientRect();pointer.x=((e.clientX-r.left)/r.width)*2-1;pointer.y=-((e.clientY-r.top)/r.height)*2+1;}
+function hitTest(e){pointerCoords(e);raycaster.setFromCamera(pointer,camera);return raycaster.intersectObjects(countryMeshes,false)[0]||null}
+renderer.domElement.addEventListener('pointermove',e=>{
+  const hit=hitTest(e),code=hit?.object?.userData?.code||null;if(code!==hoveredCode){const prev=hoveredCode;hoveredCode=code;if(prev)updateCountryVisual(prev);if(code)updateCountryVisual(code)}
+  renderer.domElement.style.cursor=code?'pointer':'grab';
+  if(code){const m=COUNTRY_META[code],v=metricValue(code,currentYear),b=valueFor(code,START_YEAR),raw=valueFor(code,currentYear),chg=b&&raw?(raw/b-1)*100:null;tooltip.querySelector('.tt-name').textContent=`${m.name} · ${code}`;tooltip.querySelector('.tt-value').textContent=fmt(v);tooltip.querySelector('.tt-meta').textContent=`${currentYear} · ${pct(chg)} since 1995`;tooltip.style.left=Math.min(innerWidth-220,e.clientX+15)+'px';tooltip.style.top=Math.min(innerHeight-130,e.clientY+15)+'px';tooltip.classList.add('show')}else tooltip.classList.remove('show');
+});
+renderer.domElement.addEventListener('pointerleave',()=>{if(hoveredCode){const p=hoveredCode;hoveredCode=null;updateCountryVisual(p)}tooltip.classList.remove('show')});
+renderer.domElement.addEventListener('click',e=>{const h=hitTest(e);if(h?.object?.userData?.code)setSelected(h.object.userData.code)});
+function togglePlay(){playing=!playing;document.getElementById('playBtn').textContent=playing?'❚❚':'▶';clearInterval(timer);if(playing)timer=setInterval(()=>update(currentYear>=END_YEAR?START_YEAR:currentYear+1),620)}
+document.getElementById('playBtn').addEventListener('click',togglePlay);
+document.getElementById('resetView').addEventListener('click',setIsoView);
+document.getElementById('heightToggle').addEventListener('click',()=>{heightEnabled=!heightEnabled;document.getElementById('heightToggle').style.opacity=heightEnabled?'1':'.45';update(currentYear)});
+document.getElementById('closeDetail').addEventListener('click',()=>document.getElementById('detailCard').style.display='none');
+slider.addEventListener('input',e=>{if(playing)togglePlay();update(+e.target.value)});
+document.querySelectorAll('#modeSwitcher button').forEach(btn=>btn.addEventListener('click',()=>{mode=btn.dataset.mode;document.querySelectorAll('#modeSwitcher button').forEach(b=>b.classList.toggle('active',b===btn));update(currentYear)}));
+document.addEventListener('keydown',e=>{if(e.key===' '){e.preventDefault();togglePlay()}else if(e.key==='ArrowRight')update(Math.min(END_YEAR,currentYear+1));else if(e.key==='ArrowLeft')update(Math.max(START_YEAR,currentYear-1));else if(e.key.toLowerCase()==='r')setIsoView()});
+async function loadData(){
+  let live=true;
+  try{const r=await fetch(DATA_URL,{cache:'force-cache'});if(!r.ok)throw new Error('HTTP '+r.status);data=rowsToData(parseCSV(await r.text()));localStorage.setItem(CACHE_KEY,JSON.stringify(data));}
+  catch(err){const cached=localStorage.getItem(CACHE_KEY);if(cached){data=JSON.parse(cached);}else{live=false;data=makeDemoData();}}
+  const a=allValues();if(a.length){levelMin=quantile(a,.04);levelMax=quantile(a,.96)}
+  const s=document.getElementById('dataStatus');s.classList.toggle('demo',!live);s.querySelector('span:last-child').textContent=live?'35 countries · 30 years · 1995–2024 · live World Bank series':'35 countries · 30 years · 1995–2024 · demo fallback (live fetch unavailable)';
+  update(START_YEAR);setSelected('DEU');document.getElementById('loading').classList.add('hide');
+}
+function resize(){
+  const w=innerWidth,h=innerHeight,aspect=w/h;const base=10.3;camera.left=-base*aspect;camera.right=base*aspect;camera.top=base;camera.bottom=-base;camera.updateProjectionMatrix();renderer.setSize(w,h);labelRenderer.setSize(w,h);
+}
+addEventListener('resize',resize);resize();
+const clock=new THREE.Clock();
+function animate(){requestAnimationFrame(animate);controls.update();const t=clock.getElapsedTime();warm.intensity=25+Math.sin(t*.75)*4;renderer.render(scene,camera);labelRenderer.render(scene,camera)}
+animate();loadData();
+</script>
+</body>
+</html>
