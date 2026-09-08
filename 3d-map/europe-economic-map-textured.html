@@ -449,7 +449,8 @@ function buildPaths(){
           const nx=dy*winding/length, ny=-dx*winding/length;
           if(ny<=0.015) continue; // Only faces oriented toward the viewer are visible.
           const originalA=ring[i], originalB=ring[(i+1)%ring.length];
-          part.edges.push({start,end,nx,ny,oa:originalA,ob:originalB,nb:null,
+          const odx=originalB[0]-originalA[0], ody=originalB[1]-originalA[1], olen=Math.hypot(odx,ody)||1;
+          part.edges.push({start,end,nx,ny,oa:originalA,ob:originalB,on:[ody*winding/olen,-odx*winding/olen],nb:null,
             length:Math.hypot(originalB[0]-originalA[0],originalB[1]-originalA[1]),
             seed:Math.round(originalA[0]*17+originalA[1]*29)});
         }
@@ -480,6 +481,13 @@ function linkNeighbours(){
   const segD=(p,a,b)=>{ const dx=b[0]-a[0], dy=b[1]-a[1], l2=dx*dx+dy*dy;
     let t=l2? ((p[0]-a[0])*dx+(p[1]-a[1])*dy)/l2 : 0; t=Math.max(0,Math.min(1,t));
     return Math.hypot(p[0]-a[0]-t*dx, p[1]-a[1]-t*dy); };
+  // Outer rings per part with bboxes, for "what land lies just beyond this edge" tests.
+  const land=[]; for (const c of GEO.countries) polysOf(c).forEach((poly,pi)=>{ const r=poly[0]; let b=[1e9,1e9,-1e9,-1e9];
+    for (const [x,y] of r){ if(x<b[0])b[0]=x; if(y<b[1])b[1]=y; if(x>b[2])b[2]=x; if(y>b[3])b[3]=y; } land.push({id:c.id,pi,r,b}); });
+  const inRing=(ring,x,y)=>{ let o=false; for(let i=0,j=ring.length-1;i<ring.length;j=i++){ const [xi,yi]=ring[i],[xj,yj]=ring[j];
+    if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi)) o=!o; } return o; };
+  const landAt=(x,y,id,pi)=>{ for (const L of land){ if ((L.id===id&&L.pi===pi)||x<L.b[0]||x>L.b[2]||y<L.b[1]||y>L.b[3]) continue;
+    if (inRing(L.r,x,y)) return L.id; } return null; };
   for (const c of GEO.countries) paths[c.id].parts.forEach((part,pi)=>{
     const me=c.id+'#'+pi;
     for (const e of part.edges){
@@ -489,6 +497,9 @@ function linkNeighbours(){
       for (const s of segs){ if (s.id===c.id && s.pi===pi) continue;
         if (Math.abs(s.a[0]-m[0])>3 && Math.abs(s.b[0]-m[0])>3) continue;
         const d=segD(m,s.a,s.b); if (d<bd){ bd=d; bid=s.id; } }
+      // Borders from differently generalised sources rarely coincide exactly (Nordics, Russia):
+      // if no segment is close, look for land a little beyond the edge along its outward normal.
+      if (!bid) for (const off of [1,2.5,4.5]){ bid=landAt(m[0]+e.on[0]*off, m[1]+e.on[1]*off, c.id, pi); if (bid) break; }
       e.nb=bid;
     }
     // Outline used for rim strokes: only edges that are not shared with another part of the same country,
