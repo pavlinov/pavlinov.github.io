@@ -179,6 +179,9 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { Line2 } from 'three/addons/lines/Line2.js';
+import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 const COUNTRY_META = {"ALB":{"name":"Albania","a2":"AL","flag":"🇦🇱"},"AUT":{"name":"Austria","a2":"AT","flag":"🇦🇹"},"BEL":{"name":"Belgium","a2":"BE","flag":"🇧🇪"},"BGR":{"name":"Bulgaria","a2":"BG","flag":"🇧🇬"},"BIH":{"name":"Bosnia and Herzegovina","a2":"BA","flag":"🇧🇦"},"CHE":{"name":"Switzerland","a2":"CH","flag":"🇨🇭"},"CZE":{"name":"Czechia","a2":"CZ","flag":"🇨🇿"},"DEU":{"name":"Germany","a2":"DE","flag":"🇩🇪"},"DNK":{"name":"Denmark","a2":"DK","flag":"🇩🇰"},"ESP":{"name":"Spain","a2":"ES","flag":"🇪🇸"},"EST":{"name":"Estonia","a2":"EE","flag":"🇪🇪"},"FIN":{"name":"Finland","a2":"FI","flag":"🇫🇮"},"FRA":{"name":"France","a2":"FR","flag":"🇫🇷"},"GBR":{"name":"United Kingdom","a2":"GB","flag":"🇬🇧"},"GRC":{"name":"Greece","a2":"GR","flag":"🇬🇷"},"HRV":{"name":"Croatia","a2":"HR","flag":"🇭🇷"},"HUN":{"name":"Hungary","a2":"HU","flag":"🇭🇺"},"IRL":{"name":"Ireland","a2":"IE","flag":"🇮🇪"},"ISL":{"name":"Iceland","a2":"IS","flag":"🇮🇸"},"ITA":{"name":"Italy","a2":"IT","flag":"🇮🇹"},"LTU":{"name":"Lithuania","a2":"LT","flag":"🇱🇹"},"LUX":{"name":"Luxembourg","a2":"LU","flag":"🇱🇺"},"LVA":{"name":"Latvia","a2":"LV","flag":"🇱🇻"},"MDA":{"name":"Moldova","a2":"MD","flag":"🇲🇩"},"MKD":{"name":"North Macedonia","a2":"MK","flag":"🇲🇰"},"NLD":{"name":"Netherlands","a2":"NL","flag":"🇳🇱"},"NOR":{"name":"Norway","a2":"NO","flag":"🇳🇴"},"POL":{"name":"Poland","a2":"PL","flag":"🇵🇱"},"PRT":{"name":"Portugal","a2":"PT","flag":"🇵🇹"},"ROU":{"name":"Romania","a2":"RO","flag":"🇷🇴"},"SRB":{"name":"Serbia","a2":"RS","flag":"🇷🇸"},"SVK":{"name":"Slovakia","a2":"SK","flag":"🇸🇰"},"SVN":{"name":"Slovenia","a2":"SI","flag":"🇸🇮"},"SWE":{"name":"Sweden","a2":"SE","flag":"🇸🇪"},"UKR":{"name":"Ukraine","a2":"UA","flag":"🇺🇦"},"RUS":{"name":"Russia","a2":"RU","flag":"🇷🇺","note":"European part shown; economic figures cover all of Russia. The continental boundary is approximate."},"BLR":{"name":"Belarus","a2":"BY","flag":"🇧🇾"},"GEO":{"name":"Georgia","a2":"GE","flag":"🇬🇪","note":"Shown with its full internationally recognised territory; GDP figures follow national statistics."},"TUR":{"name":"Turkey","a2":"TR","flag":"🇹🇷","note":"Whole country shown, including Anatolia; figures cover all of Turkey."}};
 const COUNTRY_CODES = ["ALB","AUT","BEL","BGR","BIH","CHE","CZE","DEU","DNK","ESP","EST","FIN","FRA","GBR","GRC","HRV","HUN","IRL","ISL","ITA","LTU","LUX","LVA","MDA","MKD","NLD","NOR","POL","PRT","ROU","SRB","SVK","SVN","SWE","UKR","RUS","BLR","GEO","TUR"];
 // Country outlines and label anchors are mirrored (y' = 900 - y, vertex order reversed to keep winding) so the map reads
@@ -215,7 +218,7 @@ let data={}, currentYear=startYear, mode=startMode, playing=false, timer=null, h
 let levelMin=5000, levelMax=90000, selectedCode='DEU', hoveredCode=null;
 if(embedMode)document.body.classList.add('embed');
 document.querySelectorAll('#modeSwitcher button').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
-const countryObjects=new Map(), countryMeshes=[];
+const countryObjects=new Map(), countryMeshes=[], rimMaterials=[];
 const app=document.getElementById('app');
 const sceneHost=document.getElementById('scene');
 const labelsHost=document.getElementById('labels');
@@ -348,11 +351,35 @@ const countryUVs={
     return [a,b,c,d].map(i=>new THREE.Vector2(vertices[i*3+axis]/160,vertices[i*3+2]/46));
   }
 };
+// Border rims are screen-space "fat" lines: a crisp core plus a wide, additive
+// glow that is only shown for the hovered/selected country and pulses softly.
+const RIM={rest:{color:0xa8eaff,width:1.6,opacity:.7},hover:{color:0xffffff,width:2.6,opacity:1},active:{color:0xffffff,width:2.8,opacity:1},glow:{color:0xbfefff,width:13,opacity:.36}};
+// LineMaterial draws a hard-edged band. This patch shapes its alpha across the
+// width (vUv.x runs -1..1 across the line, caps are radial) so the core gets
+// anti-aliased edges and the glow fades out like a neon halo instead of a stripe.
+// profile.x = radius that stays fully lit, profile.y = falloff exponent.
+function makeRimMaterial(opts,profile){
+  const material=new LineMaterial({worldUnits:false,transparent:true,toneMapped:false,depthWrite:false,alphaToCoverage:false,...opts});
+  material.uniforms.uProfile={value:new THREE.Vector2(...profile)};
+  material.fragmentShader=material.fragmentShader
+    .replace('void main() {','uniform vec2 uProfile;\nvoid main() {')
+    .replace('gl_FragColor = vec4( diffuseColor.rgb, alpha );',`
+      float rimD = abs( vUv.x );
+      if ( abs( vUv.y ) > 1.0 ) { float rb = ( vUv.y > 0.0 ) ? vUv.y - 1.0 : vUv.y + 1.0; rimD = length( vec2( vUv.x, rb ) ); }
+      float rimShape = pow( 1.0 - smoothstep( uProfile.x, 1.0, clamp( rimD, 0.0, 1.0 ) ), uProfile.y );
+      gl_FragColor = vec4( diffuseColor.rgb, alpha * rimShape );`);
+  rimMaterials.push(material);return material;
+}
 function addCountryRim(shape,root){
-  const material=root.userData.rimMat;
   for(const contour of [shape,...shape.holes]){
-    const points=contour.getPoints(1).map(p=>new THREE.Vector3(p.x,p.y,47.05));
-    if(points.length>2)root.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(points),material));
+    const points=contour.getPoints(1);
+    if(points.length<3)continue;
+    const positions=[];
+    for(const p of [...points,points[0]])positions.push(p.x,p.y,47.05);
+    const geometry=new LineGeometry().setPositions(positions);
+    const glow=new Line2(geometry,root.userData.glowMat);glow.renderOrder=1;glow.visible=false;
+    const core=new Line2(geometry,root.userData.rimMat);core.renderOrder=2;
+    root.add(glow,core);root.userData.glowLines.push(glow);
   }
 }
 function buildCountry(code){
@@ -369,7 +396,9 @@ function buildCountry(code){
     roughness:.7,metalness:.1,emissive:0x0d3658,emissiveIntensity:.22
   });
   root.userData.topMat=topMat; root.userData.sideMat=sideMat;
-  root.userData.rimMat=new THREE.LineBasicMaterial({color:0xadefff,transparent:true,opacity:.84,toneMapped:false});
+  root.userData.rimMat=makeRimMaterial({color:RIM.rest.color,linewidth:RIM.rest.width,opacity:RIM.rest.opacity},[.45,1]);
+  root.userData.glowMat=makeRimMaterial({color:RIM.glow.color,linewidth:RIM.glow.width,opacity:RIM.glow.opacity,blending:THREE.AdditiveBlending,depthTest:false},[0,2.8]);
+  root.userData.glowLines=[];
   const meshList=[];
   for(const path of parsed.paths){
     const shapes=SVGLoader.createShapes(path);
@@ -495,8 +524,10 @@ function updateCountryVisual(code){
   const active=code===selectedCode,hover=code===hoveredCode;
   // Self-illumination in the country's own hue keeps the palette vivid in shadow.
   obj.userData.topMat.emissive.set(active?'#ffd27a':col);obj.userData.topMat.emissiveIntensity=active?.5:hover?.55:.32;
-  obj.userData.rimMat.color.set(active?0xffdf8e:hover?0xffffff:0xa8eaff);
-  obj.userData.rimMat.opacity=active||hover?1:.76;
+  const rim=active?RIM.active:hover?RIM.hover:RIM.rest;
+  obj.userData.rimMat.color.set(rim.color);obj.userData.rimMat.linewidth=rim.width;obj.userData.rimMat.opacity=rim.opacity;
+  obj.userData.glowMat.opacity=RIM.glow.opacity;obj.userData.glowMat.linewidth=RIM.glow.width;
+  for(const line of obj.userData.glowLines)line.visible=active||hover;
   obj.userData.label.classList.toggle('selected',active);
 }
 function update(y){
@@ -640,10 +671,18 @@ function resize(){
   const base=Math.max(9.6,mapFrameHeight/.84/2,mapFrameWidth/aspect/.88/2);
   camera.left=-base*aspect;camera.right=base*aspect;camera.top=base;camera.bottom=-base;
   camera.updateProjectionMatrix();renderer.setSize(w,h);labelRenderer.setSize(w,h);
+  const px=renderer.getPixelRatio();for(const material of rimMaterials)material.resolution.set(w*px,h*px);
 }
 addEventListener('resize',resize);resize();
 const clock=new THREE.Clock();
-function animate(){requestAnimationFrame(animate);controls.update();const t=clock.getElapsedTime();warm.intensity=19+Math.sin(t*.75)*2;renderer.render(scene,camera);labelRenderer.render(scene,camera)}
+// Soft pulse on the selected country's border glow; the hovered one stays steady.
+function pulseRim(t){
+  const obj=selectedCode&&countryObjects.get(selectedCode);if(!obj)return;
+  const k=(Math.sin(t*2.2)+1)/2;
+  obj.userData.glowMat.opacity=RIM.glow.opacity*(.6+.4*k);obj.userData.glowMat.linewidth=RIM.glow.width*(.85+.3*k);
+  obj.userData.rimMat.linewidth=RIM.active.width+.5*k;
+}
+function animate(){requestAnimationFrame(animate);controls.update();const t=clock.getElapsedTime();warm.intensity=19+Math.sin(t*.75)*2;pulseRim(t);renderer.render(scene,camera);labelRenderer.render(scene,camera)}
 animate();loadData();
 </script>
 </body>
