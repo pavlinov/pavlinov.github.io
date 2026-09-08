@@ -19,6 +19,7 @@ URLS = {
  'imf_lp.json': 'https://www.imf.org/external/datamapper/api/v1/LP',
  'wb_gdp_bulk.zip': 'https://api.worldbank.org/v2/en/indicator/NY.GDP.MKTP.KD?downloadformat=csv',
  'wb_pop_bulk.zip': 'https://api.worldbank.org/v2/en/indicator/SP.POP.TOTL?downloadformat=csv',
+ 'oecd_eo.csv': 'https://sdmx.oecd.org/public/rest/data/OECD.ECO.MAD,DSD_EO@DF_EO,/AUT+BEL+BGR+CHE+CZE+DEU+DNK+ESP+EST+FIN+FRA+GBR+GRC+HRV+HUN+IRL+ISL+ITA+LTU+LUX+LVA+NLD+NOR+POL+PRT+ROU+RUS+SVK+SVN+SWE.GDPV_ANNPCT.A?startPeriod=2026&endPeriod=2027&format=csvfilewithlabels',
  'ons_abmi.json': 'https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/abmi/pn2/data',
  'ons_ukpop.json': 'https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/timeseries/ukpop/pop/data',
 }

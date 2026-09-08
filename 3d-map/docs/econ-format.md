@@ -11,8 +11,8 @@ This document defines the v2 shape that research output must follow. Arrays are 
     "unit_pc":  "EUR per inhabitant, chain-linked volumes, reference year 2015",
     "unit_pop": "million residents, annual average",
     "fx_2015_usd_per_eur": 1.1095,      // ECB 2015 average, used to anchor non-euro-area series
-    "years": [1995, 1996, "...", 2026],
-    "forecast_from": 2026,              // first year that is a forecast for every country
+    "years": [1995, 1996, "...", 2031],
+    "forecast_from": 2026,              // first year that is a forecast for every country (2026-2031 are IMF WEO projections)
     "generated": "YYYY-MM-DD"
   },
   "sources": {                          // codes used in each country's src[]

@@ -5,7 +5,7 @@ import csv, json, os, sys
 RAW = os.environ.get('ECON_RAW', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'raw'))
 OUT_JSON = sys.argv[1]
 OUT_NOTES = sys.argv[2]
-YEARS = list(range(1995, 2027))
+YEARS = list(range(1995, 2032))
 N = len(YEARS)
 FX = 1.1095
 FC_FROM = 2026
@@ -215,9 +215,9 @@ for iso, c in countries.items():
     parts = []
     es_g = [YEARS[i] for i in range(N) if g[i] == 'ES']; es_pc = r['espc_years']
     if iso in ('RUS', 'BLR', 'GEO'):
-        parts.append('Outside Eurostat national accounts. Real GDP anchored on IMF WEO (April 2026) 2015 nominal GDP in USD converted at 1.1095 and chained with IMF real growth (NGDP_RPCH) 1995-2025; population IMF WEO (LP); 2026 IMF projection.')
+        parts.append('Outside Eurostat national accounts. Real GDP anchored on IMF WEO (April 2026) 2015 nominal GDP in USD converted at 1.1095 and chained with IMF real growth (NGDP_RPCH) 1995-2025; population IMF WEO (LP); 2026-2031 IMF projections.')
     elif iso == 'GBR':
-        parts.append('Not in current Eurostat tables. 2015 level from IMF WEO nominal GDP (USD) at 1.1095; volumes chained with ONS real GDP series ABMI (chained volume measures, release %s) 1995-2025; population ONS mid-year estimates series UKPOP (release %s). 2026: IMF WEO April 2026 growth and population.' % (ONS_ABMI_REL, ONS_POP_REL))
+        parts.append('Not in current Eurostat tables. 2015 level from IMF WEO nominal GDP (USD) at 1.1095; volumes chained with ONS real GDP series ABMI (chained volume measures, release %s) 1995-2025; population ONS mid-year estimates series UKPOP (release %s). 2026-2031: IMF WEO April 2026 growth and population projections.' % (ONS_ABMI_REL, ONS_POP_REL))
     elif iso == 'UKR':
         parts.append('GDP 2010-2024 verbatim from Eurostat nama_10_gdp (Ukrstat data transmitted to Eurostat); 1995-2009 back-cast with IMF WEO real growth; 2025 IMF estimate. Population: Eurostat demo_gind average population 1996-2020, extended 2021-2025 with IMF WEO population growth (reflects wartime displacement from 2022); 1995 back-cast with IMF. 2026 IMF projection. The 2014 drop (-6.5% real, and -5.5% population) is the exclusion of Crimea and occupied Donbas; 2022 is the full-scale invasion (-28.8%).')
     else:
@@ -234,8 +234,8 @@ for iso, c in countries.items():
         if derived_p:
             codes = sorted(set(p[yi(y)] for y in derived_p))
             parts.append('Population %s chained from %s growth off the nearest Eurostat level.' % (yrs(derived_p), ' / '.join({'IMF':'IMF WEO','WB':'World Bank WDI (UN WPP)'}[c] for c in codes)))
-        if not parts: parts.append('Eurostat nama_10_gdp / nama_10_pc verbatim 1995-2025; 2026 IMF WEO April 2026 real-growth and population projection applied to the 2025 Eurostat values.')
-        else: parts.append('2026: IMF WEO April 2026 real-growth and population projection.')
+        if not parts: parts.append('Eurostat nama_10_gdp / nama_10_pc verbatim 1995-2025; 2026-2031 IMF WEO April 2026 real-growth and population projections applied to the 2025 Eurostat values.')
+        else: parts.append('2026-2031: IMF WEO April 2026 real-growth and population projections.')
     if iso == 'ALB':
         parts.append('Population 2023-2025 is Eurostat demo_gind (INSTAT, 2023-census based: 2.58 M in 2023, 2.38 M in 2024) while 2022 and earlier is the pre-census national-accounts population (2.78 M in 2022); the per-capita steps of +12% in 2023 and +13% in 2024 are this documented census break, not real growth. IMF WEO still carries the pre-census 2.75 M for 2023.')
     if iso == 'BIH':
@@ -315,6 +315,20 @@ for iso, c in countries.items():
         if abs(d) > 2: dis.append('%s %+.1f%%' % (iso, d))
 checks.append('Countries whose 2024 level differs from World Bank constant-2015-USD by > 2 % (WB rebases to 2015 USD at market rates and revises less often; informational): ' + (', '.join(dis) if dis else 'none'))
 
+# OECD Economic Outlook cross-check of the 2027 (and 2026) real-growth projections
+oecd_path = os.path.join(RAW, 'oecd_eo.csv')
+if os.path.exists(oecd_path):
+    oecd = {}
+    for r in csv.DictReader(open(oecd_path)):
+        oecd.setdefault(r['REF_AREA'], {})[int(r['TIME_PERIOD'])] = float(r['OBS_VALUE'])
+    diffs = []
+    for iso, s_ in oecd.items():
+        if iso not in countries or 2027 not in s_: continue
+        imf27 = imf_g(iso, 2027); diffs.append((iso, imf27, s_[2027], imf27 - s_[2027]))
+    diffs.sort(key=lambda x: -abs(x[3]))
+    mad = sum(abs(x[3]) for x in diffs)/len(diffs)
+    checks.append('2027 real growth, IMF WEO Apr-2026 vs OECD Economic Outlook (%d countries): mean abs. gap %.2f pp; largest: %s' % (
+        len(diffs), mad, '; '.join('%s IMF %.1f / OECD %.1f' % (d[0], d[1], d[2]) for d in diffs[:6])))
 # 2025 flags
 prov = sorted(set(iso for iso, r in report.items() if r['flags'].get(2025) in ('p', 'e')))
 checks.append('Eurostat 2025 values are flagged provisional/estimated for: ' + ', '.join(prov))
@@ -335,7 +349,7 @@ out = {
   'IMF': 'IMF World Economic Outlook, April 2026 (NGDP_RPCH real growth, LP population, NGDPD nominal USD GDP for the 2015 anchor)',
   'WB': 'World Bank WDI (NY.GDP.MKTP.KD constant 2015 USD, SP.POP.TOTL), last updated %s; used only for growth back-casts where Eurostat and IMF are silent (MLT 1995-1999, MNE 1997-1999, BIH population before 2000), and as cross-check. The Malta 1999-2000 link uses UN National Accounts Main Aggregates growth (see country note).' % WB_UPD,
   'NAT': 'national statistics office: UK Office for National Statistics (ABMI real GDP release %s; UKPOP mid-year population release %s)' % (ONS_ABMI_REL, ONS_POP_REL),
-  'FC': 'forecast: IMF World Economic Outlook April 2026 projections (real growth and population) applied to the 2025 value',
+  'FC': 'forecast: IMF World Economic Outlook April 2026 projections (real growth and population) chained forward from the 2025 value (2026-2031)',
  },
  'countries': countries,
 }
@@ -352,18 +366,19 @@ for iso, c in countries.items():
     if non_es: srcsum.append('%s: %s %s' % (iso, yrs(non_es), '/'.join(sorted(set(c['src'][yi(y)] for y in non_es if c['src'][yi(y)])))))
 
 notes = ['# Notes — GDP research output (%s)' % GENERATED, '',
- 'Output: `data/econ.json` (v2 format, 40 countries × 32 years 1995–2026, `forecast_from` 2026).', '',
+ 'Output: `data/econ.json` (v2 format, 40 countries × 37 years 1995–2031, `forecast_from` 2026; 2026–2031 are IMF WEO April 2026 projections, coded `FC`).', '',
  '## Data vintages',
  '- Eurostat nama_10_gdp / nama_10_pc / nama_10_pe dataset timestamp %s; demo_gind %s. 2025 values flagged provisional (p) or estimated (e) by Eurostat.' % (ES_GDP['updated'][:16].replace('T', ' '), ES_DEMO['updated'][:10]),
- '- IMF World Economic Outlook April 2026 (datamapper API, indicators NGDP_RPCH, NGDPD, LP). 2025 = IMF estimate where national data were not final; 2026 = projection (all `FC`).',
+ '- IMF World Economic Outlook April 2026 (datamapper API, indicators NGDP_RPCH, NGDPD, LP). 2025 = IMF estimate where national data were not final; 2026–2031 = projections (all `FC`, medium-term WEO horizon). The WEO is the only source projecting real GDP and population for all 40 countries to 2031; the OECD Economic Outlook stops at 2027 and the European Commission Spring 2026 forecast at 2027 (EU members and candidates only).',
  '- World Bank WDI bulk download, last updated %s (cross-check; growth back-cast only for MLT 1995–1999, MNE 1997–2000, and population before 2000 for BIH).' % WB_UPD,
+ '- OECD Economic Outlook (sdmx.oecd.org, dataflow DSD_EO@DF_EO, GDPV_ANNPCT) used only to cross-check the 2026-2027 IMF growth projections (OECD horizon ends 2027); not used in the data.',
  '- ONS: real GDP ABMI (chained volume measures, seasonally adjusted, release %s, 2025 included); UK mid-year population UKPOP (release %s).' % (ONS_ABMI_REL, ONS_POP_REL),
  '',
  '## Check results',
 ] + ['- ' + c for c in checks] + [
  '',
  '## Source-coding policy',
- '- `ES` only where GDP is verbatim Eurostat and population is Eurostat (nama_10_pc per-capita, or nama_10_pe / demo_gind population). Any year with an IMF, World Bank or national input is coded by that input (IMF > WB when both). 2026 is always `FC`. Non-ES years before 2026:',
+ '- `ES` only where GDP is verbatim Eurostat and population is Eurostat (nama_10_pc per-capita, or nama_10_pe / demo_gind population). Any year with an IMF, World Bank or national input is coded by that input (IMF > WB when both). 2026–2031 are always `FC`. Non-ES years before 2026:',
 ] + ['  - ' + s for s in srcsum] + [
  '',
  '## Judgement calls to be aware of',
@@ -372,6 +387,7 @@ notes = ['# Notes — GDP research output (%s)' % GENERATED, '',
  '- Serbia: Eurostat’s own per-capita series switches population basis in 1999 (Kosovo excluded from 1999, included 1995–1998), a +16 % step in pc with GDP continuous; kept verbatim, documented in the country note.',
  '- Malta 1995–1999: World Bank constant-USD GDP has a splice jump of +19.7 % at 2000; the 1999→2000 link uses UN National Accounts Main Aggregates growth (6.7 %) instead, coded `WB`. Montenegro 1998–2000: WB and UN growth disagree by up to 11 pp; WB used.',
  '- United Kingdom: no Eurostat series since Brexit; IMF USD anchor + ONS chaining. Eurostat demo_gind UK population 2025 (69.47 M) agrees with ONS UKPOP (69.49 M) within 0.03 %.',
+ '- 2027–2031 are pure IMF WEO medium-term projections chained year by year (beyond 2027 the IMF converges most countries to potential growth, so the paths are smooth trend extrapolations, not forecasts of cycles); IMF population projections carry statistical revisions (e.g. Poland −0.8 % in 2026), which the ratio-chaining transfers to `pop`/`pc` as a one-year dip.',
  '- Russia: territory per Rosstat/IMF (Crimea included from 2014). IMF population (144.8 M in 2024) excludes the regions occupied since 2022.',
 ]
 open(OUT_NOTES, 'w').write('\n'.join(notes) + '\n')
