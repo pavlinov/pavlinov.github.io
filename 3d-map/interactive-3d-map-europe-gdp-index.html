@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Europe Economic Evolution — 3D Isometric Map</title>
-<meta name="description" content="Textured interactive 3D economic map of 39 countries, including European Russia, Belarus, Georgia and Turkey, 1995–2026 with IMF projections." />
+<meta name="description" content="Textured interactive 3D economic map of 39 countries, including European Russia, Belarus, Georgia and Turkey, 1995–2027 with IMF projections." />
 <style>
   :root{
     --bg:#07111d; --panel:rgba(8,22,37,.82); --panel-2:rgba(11,31,50,.72);
@@ -29,11 +29,12 @@
   .outlook{margin-top:12px;border-top:1px solid rgba(132,184,225,.13);padding-top:10px}
   .outlook-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:11px;color:#8fb3d4}
   .outlook-head b{color:#ffd68a;font-size:12px;letter-spacing:.04em}
-  .outlook-table{width:100%;border-collapse:collapse;margin-top:6px;font-size:11px}
-  .outlook-table th{font-weight:500;color:#9bb9d2;text-align:left;padding:3px 0}
+  .outlook-table{width:100%;border-collapse:collapse;margin-top:6px;font-size:10.5px}
+  .outlook-table th{font-weight:500;color:#9bb9d2;text-align:left;padding:3px 0;white-space:nowrap}
   .outlook-table thead th{text-align:right;color:#cfe3f5;font-weight:700}.outlook-table thead th em{font-style:normal;font-weight:500;color:#8fb3d4;font-size:9.5px}
-  .outlook-table td{text-align:right;padding:3px 0 3px 8px;font-weight:700;color:#f2f9ff;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .outlook-table td{text-align:right;padding:3px 0 3px 6px;font-weight:700;color:#f2f9ff;white-space:nowrap;font-variant-numeric:tabular-nums}
   .outlook-table tbody tr:last-child td,.outlook-table tbody tr:last-child th{padding-bottom:0}
+  .outlook-foot{margin-top:8px;font-size:9.5px;line-height:1.45;color:#8fb3d4}
   .year-now.projected{color:#ffd068}
   .detail-note:empty{display:none}
   .glass{background:linear-gradient(180deg,rgba(10,31,51,.88),rgba(6,21,36,.84));border:1px solid var(--line);box-shadow:0 18px 55px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.035);backdrop-filter:blur(14px)}
@@ -49,7 +50,7 @@
   .stat{height:78px;border-radius:13px;padding:13px 14px;display:flex;gap:13px;align-items:center}
   .stat-icon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(53,142,221,.12);border:1px solid rgba(83,161,227,.17);font-size:20px;color:#87bced}
   .stat strong{display:block;font-size:23px;line-height:1.05}.stat span{display:block;color:#a8c8e5;font-size:12.5px;margin-top:3px}
-  .detail{position:absolute;right:28px;top:28px;width:325px;max-height:max(240px,calc(100vh - 380px));overflow:auto;scrollbar-width:thin;border-radius:15px;padding:17px 18px 15px;z-index:7;transition:opacity .18s ease,transform .18s ease}
+  .detail{position:absolute;right:28px;top:28px;width:350px;max-height:max(240px,calc(100vh - 340px));overflow:auto;scrollbar-width:thin;border-radius:15px;padding:17px 18px 15px;z-index:7;transition:opacity .18s ease,transform .18s ease}
   .detail-head{display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(132,184,225,.13);padding-bottom:12px}
   .flag{font-size:28px;filter:saturate(.85)}
   .detail-name{font-size:17px;font-weight:750}.detail-code{font-weight:500;color:#a4c1dc}
@@ -81,6 +82,27 @@
   .segmented button{border:0;background:transparent;color:#8fb0cf;font-size:11px;padding:9px 12px;border-radius:9px;cursor:pointer;white-space:nowrap}
   .segmented button.active{background:linear-gradient(180deg,rgba(40,137,226,.42),rgba(29,100,173,.28));color:#eef8ff;box-shadow:0 0 0 1px rgba(74,164,241,.54),0 0 18px rgba(50,140,229,.15)}
   .control-label{font-size:10px;color:#7e9db9;margin-right:-4px}
+  .embed-pop{position:absolute;right:26px;bottom:104px;width:430px;max-width:calc(100vw - 40px);border-radius:14px;padding:15px 16px 14px;z-index:20;display:none}
+  .embed-pop.open{display:block}
+  body.embed-open .legend,body.embed-open .iso-badge{display:none}
+  .embed-pop h3{margin:0;font-size:14px}.embed-pop .hint{color:#8fb3d4;font-size:11px;margin-top:3px;line-height:1.45}
+  .embed-row{display:flex;align-items:center;gap:8px;margin-top:11px;flex-wrap:wrap}
+  .embed-row .segmented button{padding:7px 10px}
+  .embed-row label{display:flex;align-items:center;gap:6px;font-size:11px;color:#a9c5df;cursor:pointer;margin-left:auto}
+  .embed-code{width:100%;margin-top:10px;min-height:122px;resize:vertical;border-radius:9px;border:1px solid rgba(108,179,233,.28);background:rgba(4,14,25,.9);color:#d9ecff;font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:9px 10px;outline:0;white-space:pre-wrap;word-break:break-all}
+  .embed-actions{display:flex;align-items:center;gap:10px;margin-top:10px}
+  .copy-btn{border:1px solid rgba(77,159,233,.5);background:linear-gradient(180deg,rgba(40,137,226,.55),rgba(29,100,173,.4));color:#f4fbff;font-weight:700;font-size:12px;padding:9px 14px;border-radius:9px;cursor:pointer}
+  .copy-btn:hover{background:linear-gradient(180deg,rgba(60,157,246,.65),rgba(39,120,193,.5))}
+  .copy-btn.done{border-color:rgba(72,224,164,.6);background:rgba(72,224,164,.18);color:#b9ffe0}
+  .embed-actions a{color:#8fc5ff;font-size:11px;text-decoration:none}.embed-actions a:hover{text-decoration:underline}
+  .embed-status{font-size:11px;color:#8fb3d4;margin-left:auto}
+  .open-full{display:none;margin-left:6px;color:#8fc5ff;font-size:11px;text-decoration:none;white-space:nowrap;border:1px solid rgba(77,159,233,.34);border-radius:9px;padding:9px 11px}
+  .open-full:hover{background:rgba(33,105,164,.36)}
+  body.embed .stat-stack,body.embed .eyebrow,body.embed .iso-badge,body.embed #embedBtn{display:none}
+  body.embed .open-full{display:inline-block}
+  body.embed h1{font-size:34px}body.embed .subtitle{font-size:17px}body.embed .metric-title{font-size:12px}body.embed .meta-row{font-size:11px;margin-top:10px}
+  body.embed .top-left{width:280px;top:18px;left:20px}
+  body.embed .controls{height:76px}body.embed .round-btn{width:44px;height:44px}
   .iso-badge{position:absolute;right:258px;bottom:112px;z-index:6;padding:8px 10px;border-radius:10px;color:#8eb7db;font-size:10px;letter-spacing:.08em;text-transform:uppercase;pointer-events:none}
   .loading{position:absolute;inset:0;display:grid;place-items:center;z-index:30;background:#07111d;transition:opacity .35s ease}
   .loading.hide{opacity:0;pointer-events:none}.loader-card{text-align:center}.spinner{width:36px;height:36px;border-radius:50%;border:3px solid rgba(90,168,225,.18);border-top-color:#3aa5f5;margin:0 auto 12px;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
@@ -108,19 +130,19 @@
     <h1>Europe</h1>
     <div class="subtitle">Economic Evolution</div>
     <div class="metric-title">GDP per capita · PPP · constant 2021 international $</div>
-    <div class="meta-row" id="dataStatus"><span class="live-dot"></span><span>39 countries · 1995–2026 · loading data</span></div>
+    <div class="meta-row" id="dataStatus"><span class="live-dot"></span><span>39 countries · 1995–2027 · loading data</span></div>
   </section>
   <section class="stat-stack">
     <div class="stat glass"><div class="stat-icon">▥</div><div><strong id="countryCount">39</strong><span>Countries on the map</span></div></div>
-    <div class="stat glass"><div class="stat-icon">◷</div><div><strong>32</strong><span>years · 1995–2026<br>2026 = IMF projection</span></div></div>
+    <div class="stat glass"><div class="stat-icon">◷</div><div><strong>33</strong><span>years · 1995–2027<br>2026–27 = IMF projection</span></div></div>
     <div class="stat glass"><div class="stat-icon">⌁</div><div><strong style="font-size:15px">Real GDP / capita</strong><span>World Bank · IMF WEO Apr 2026</span></div></div>
   </section>
   <section class="detail glass" id="detailCard">
     <div class="detail-head"><div class="flag" id="flag">🇩🇪</div><div class="detail-name"><span id="countryName">Germany</span> <span class="detail-code" id="countryCode">(DEU)</span></div><button class="close" id="closeDetail" title="Close">×</button></div>
-    <div class="detail-kicker" id="detailKicker">GDP per capita (2026)</div>
+    <div class="detail-kicker" id="detailKicker">GDP per capita (2027)</div>
     <div class="detail-value-row"><div class="detail-value" id="detailValue">—</div><div class="change" id="detailChange">—</div></div>
     <svg id="sparkline" viewBox="0 0 290 76" preserveAspectRatio="none" aria-label="Economic trend"></svg>
-    <div class="spark-years"><span>1995</span><span>2026</span></div>
+    <div class="spark-years"><span>1995</span><span>2027</span></div>
     <div class="outlook" id="outlook"></div>
     <div class="detail-note" id="detailNote"></div>
   </section>
@@ -134,10 +156,22 @@
     <button class="round-btn" id="playBtn" title="Play / pause">▶</button>
     <button class="square-btn" id="resetView" title="Reset isometric view">◇</button>
     <div class="year-start">1995</div>
-    <div class="timeline"><input type="range" id="yearSlider" min="1995" max="2026" value="1995" step="1" /><div class="year-now" id="yearNow">1995</div></div>
+    <div class="timeline"><input type="range" id="yearSlider" min="1995" max="2027" value="1995" step="1" /><div class="year-now" id="yearNow">1995</div></div>
     <div class="segmented" id="modeSwitcher"><button class="active" data-mode="level">GDP per capita</button><button data-mode="index">Growth vs 1995</button></div>
     <span class="control-label">3D</span><button class="square-btn" id="heightToggle" title="Toggle data-driven height">▦</button>
+    <button class="square-btn" id="embedBtn" title="Embed this map on your website" aria-haspopup="dialog" aria-controls="embedPop" style="font-size:12px;font-weight:800;letter-spacing:-.02em">&lt;/&gt;</button>
+    <a class="open-full" id="openFull" href="#" target="_blank" rel="noopener" title="Open the full interactive map in a new tab">Open full map ↗</a>
   </footer>
+  <section class="embed-pop glass" id="embedPop" role="dialog" aria-label="Embed this map">
+    <h3>Embed this map</h3>
+    <div class="hint">Paste the snippet into any HTML page, CMS block or Notion/Medium embed that accepts iframes. The map loads from GitHub Pages and stays interactive.</div>
+    <div class="embed-row">
+      <div class="segmented" id="embedSize"><button class="active" data-size="responsive">Responsive · 640px</button><button data-size="compact">Compact · 480px</button><button data-size="fixed">Fixed 960×600</button></div>
+      <label><input type="checkbox" id="embedState" checked /> start from current view</label>
+    </div>
+    <textarea class="embed-code" id="embedCode" readonly spellcheck="false" aria-label="Embed code"></textarea>
+    <div class="embed-actions"><button class="copy-btn" id="copyEmbed">Copy embed code</button><a id="embedLink" href="#" target="_blank" rel="noopener">Preview embed ↗</a><span class="embed-status" id="embedStatus"></span></div>
+  </section>
   <div class="loading" id="loading"><div class="loader-card"><div class="spinner"></div><b>Building 3D Europe</b><span>Loading geometry and economic series…</span></div></div>
 </div>
 <script type="module">
@@ -153,22 +187,34 @@ const PATHS = {"ALB":"M 766.4,231.8 L 761.8,228.2 L 761.7,221.6 L 755.7,211.0 L 
 const LABELS = {"ALB":{"x":745.2,"y":232.0,"text":"AL"},"AUT":{"x":661.6,"y":364.6,"text":"AT"},"BEL":{"x":520.7,"y":426.0,"text":"BE"},"BGR":{"x":824.0,"y":285.2,"text":"BG"},"BIH":{"x":728.0,"y":277.5,"text":"BA"},"CHE":{"x":570.7,"y":335.2,"text":"CH"},"CZE":{"x":670.8,"y":407.0,"text":"CZ"},"DEU":{"x":599.9,"y":431.7,"text":"DE"},"DNK":{"x":599.6,"y":541.1,"text":"DK"},"ESP":{"x":395.5,"y":234.3,"text":"ES"},"EST":{"x":758.8,"y":605.1,"text":"EE"},"FIN":{"x":748.8,"y":724.6,"text":"FI"},"FRA":{"x":492.4,"y":349.7,"text":"FR"},"GBR":{"x":454.0,"y":514.1,"text":"GB"},"GRC":{"x":779.5,"y":214.5,"text":"GR"},"HRV":{"x":690.0,"y":295.0,"text":"HR"},"HUN":{"x":721.9,"y":361.5,"text":"HU"},"IRL":{"x":386.5,"y":502.6,"text":"IE"},"ISL":{"x":362.1,"y":768.8,"text":"IS"},"ITA":{"x":637.1,"y":260.0,"text":"IT"},"LTU":{"x":754.0,"y":530.5,"text":"LT"},"LUX":{"x":536.9,"y":394.4,"text":"LU"},"LVA":{"x":759.8,"y":565.1,"text":"LV"},"MDA":{"x":869.6,"y":381.0,"text":"MD"},"MKD":{"x":782.8,"y":240.9,"text":"MK"},"NLD":{"x":547.1,"y":461.9,"text":"NL"},"NOR":{"x":622.0,"y":717.7,"text":"NO"},"POL":{"x":709.4,"y":459.7,"text":"PL"},"PRT":{"x":315.0,"y":233.3,"text":"PT"},"ROU":{"x":804.2,"y":348.4,"text":"RO"},"SRB":{"x":770.7,"y":300.8,"text":"RS"},"SVK":{"x":725.9,"y":396.5,"text":"SK"},"SVN":{"x":659.9,"y":321.0,"text":"SI"},"SWE":{"x":642.5,"y":658.0,"text":"SE"},"UKR":{"x":871.0,"y":427.2,"text":"UA"},"RUS":{"x":936.2,"y":666.4,"text":"RU"},"BLR":{"x":810.8,"y":505.7,"text":"BY"},"GEO":{"x":1079.6,"y":357.6,"text":"GE"},"TUR":{"x":984.8,"y":256.0,"text":"TR"}};
 // Low-relief neighboring land provides geographic context; it has no economic series.
 const CONTEXT_PATHS = {"CY":"M 970.8,166.2 L 963.5,163.2 L 969.2,156.5 L 977.7,156.4 L 991.9,169.4 L 990.9,170.8 L 989.1,171.0 L 986.4,168.5 L 984.0,168.2 L 983.4,167.2 L 982.5,169.0 L 981.1,169.9 L 977.9,169.1 L 974.1,166.1 L 970.8,166.2 Z","ME":"M 747.2,269.8 L 749.4,274.6 L 750.4,276.5 L 744.3,279.8 L 739.2,281.4 L 736.8,283.8 L 732.5,286.8 L 730.0,284.6 L 725.8,279.4 L 724.8,268.2 L 723.5,264.6 L 730.4,261.3 L 735.3,255.3 L 738.6,254.2 L 736.8,260.5 L 742.1,271.1 L 743.5,267.5 L 747.2,269.8 Z","XK":"M 756.9,256.1 L 758.7,256.3 L 758.9,260.5 L 767.2,264.9 L 770.4,266.2 L 769.8,267.5 L 771.1,270.2 L 772.1,275.3 L 770.0,274.9 L 766.6,278.1 L 764.1,278.7 L 761.7,281.6 L 758.8,282.4 L 756.4,284.9 L 753.9,283.4 L 752.8,276.5 L 749.4,274.6 L 747.2,269.8 L 751.1,264.8 L 754.9,263.3 L 756.9,256.1 Z","MA":"M 395.5,127.2 L 388.4,128.6 L 372.1,135.9 L 356.3,137.4 L 348.0,147.7 L 336.1,150.2 L 328.7,139.3 L 313.9,121.3 L 300.1,116.0 L 281.7,111.1 L 272.9,104.2 L 403.7,78.2 L 402.5,79.7 L 399.4,101.4 L 400.0,113.6 L 395.5,127.2 Z","DZ":"M 569.3,64.4 L 556.8,75.6 L 555.7,90.6 L 566.4,101.4 L 570.6,117.7 L 568.4,136.8 L 571.9,147.0 L 560.7,146.0 L 554.3,150.9 L 536.9,151.5 L 521.2,144.4 L 513.2,147.9 L 486.2,148.4 L 458.4,147.7 L 442.1,143.5 L 430.8,136.6 L 412.7,135.6 L 395.5,127.2 L 400.0,113.6 L 399.4,101.4 L 402.5,79.7 L 403.7,78.2 Z","TN":"M 622.8,64.3 L 623.1,71.0 L 616.5,74.0 L 612.1,83.4 L 603.3,83.7 L 600.1,94.5 L 611.1,104.6 L 613.1,121.9 L 607.4,126.8 L 607.4,136.0 L 615.5,145.9 L 614.3,149.7 L 600.5,142.3 L 601.0,152.4 L 589.7,154.8 L 571.9,147.0 L 568.4,136.8 L 570.6,117.7 L 566.4,101.4 L 555.7,90.6 L 556.8,75.6 L 569.3,64.4 Z","AM":"M 1116.4,319.3 L 1107.2,322.5 L 1097.9,320.0 L 1094.0,331.5 L 1087.1,337.0 L 1106.7,350.5 L 1110.4,349.1 L 1109.4,347.0 L 1118.2,346.1 L 1117.1,340.8 L 1128.9,336.2 L 1125.3,329.9 L 1141.1,328.2 L 1146.6,316.2 L 1141.7,313.1 L 1131.0,323.3 L 1127.6,320.0 L 1119.6,322.2 Z ","AZ":"M 1117.5,318.6 L 1119.6,322.2 L 1123.1,319.5 L 1131.7,323.2 L 1141.7,313.1 L 1131.9,311.1 Z M 1183.2,324.8 L 1179.6,322.3 L 1167.7,326.1 L 1170.2,331.3 L 1165.7,334.0 L 1167.3,338.5 L 1160.4,341.4 L 1146.6,316.2 L 1141.1,328.2 L 1125.3,329.9 L 1129.1,332.9 L 1128.4,337.3 L 1119.0,339.4 L 1118.2,346.1 L 1109.4,347.0 L 1110.4,349.1 L 1106.7,350.5 L 1109.1,355.3 L 1128.8,357.1 L 1128.9,361.7 L 1119.2,365.2 L 1120.5,371.2 L 1125.3,371.9 L 1137.4,366.1 L 1144.3,367.9 L 1150.4,384.9 L 1169.7,372.6 L 1186.3,370.0 L 1176.5,362.2 L 1181.6,345.3 L 1179.4,332.1 Z "};
-const START_YEAR=1995, END_YEAR=2026;
+const START_YEAR=1995, END_YEAR=2027;
 // Latest year with World Bank observations. Later years are filled from the IMF
 // World Economic Outlook (April 2026) real GDP per capita growth projections.
 const LAST_ACTUAL_YEAR=2025;
 // IMF WEO April 2026 (datamapper, edition dated 2026-04-08). Per country:
-// g   = real GDP growth % [2025 est., 2026 proj.]
+// g   = real GDP growth % [2025 est., 2026 proj., 2027 proj.]
 // pc  = real GDP per capita growth % (real growth adjusted for IMF population)
-// gdp = GDP, current prices, US$ billions [2025, 2026]
-// ppp = GDP per capita, PPP current international $ [2025, 2026]
-// usd = GDP per capita, current US$ [2025, 2026]
-const IMF_OUTLOOK={"ALB":{"g":[3.7,3.4],"pc":[4.74,4.45],"gdp":[30.3,33.3],"ppp":[23498,25247],"usd":[11235,12493]},"AUT":{"g":[0.6,0.7],"pc":[0.35,0.45],"gdp":[579.9,623.7],"ppp":[75825,78334],"usd":[63161,67761]},"BEL":{"g":[1,0.7],"pc":[0.44,0.31],"gdp":[724.9,776.7],"ppp":[76208,78607],"usd":[61002,65112]},"BGR":{"g":[3.1,2.8],"pc":[5.96,3.66],"gdp":[131.0,148.1],"ppp":[42816,45642],"usd":[20921,23848]},"BIH":{"g":[2,2.2],"pc":[2.3,2.47],"gdp":[33.0,36.8],"ppp":[22887,24123],"usd":[9568,10701]},"CHE":{"g":[1.3,1.3],"pc":[0.58,0.59],"gdp":[1043.5,1146.9],"ppp":[102096,105680],"usd":[115620,126177]},"CZE":{"g":[2.5,2.2],"pc":[2.79,2.51],"gdp":[389.0,432.6],"ppp":[60247,63550],"usd":[35678,39795]},"DEU":{"g":[0.2,0.8],"pc":[0.19,0.83],"gdp":[5048.1,5452.9],"ppp":[74004,76747],"usd":[60439,65303]},"DNK":{"g":[2.9,2],"pc":[2.35,1.26],"gdp":[461.7,503.8],"ppp":[86094,89667],"usd":[77046,83445]},"ESP":{"g":[2.8,2.1],"pc":[1.47,0.9],"gdp":[1903.8,2091.2],"ppp":[57034,59187],"usd":[38290,41563]},"EST":{"g":[0.6,1.4],"pc":[0.82,1.4],"gdp":[47.0,51.6],"ppp":[49492,51653],"usd":[34325,37718]},"FIN":{"g":[0.2,1],"pc":[0.06,0.93],"gdp":[316.9,337.7],"ppp":[66297,68861],"usd":[56464,60130]},"FRA":{"g":[0.9,0.9],"pc":[0.59,0.62],"gdp":[3368.9,3596.1],"ppp":[66276,68567],"usd":[48930,52083]},"GBR":{"g":[1.3,0.8],"pc":[1.0,0.28],"gdp":[4003.0,4264.8],"ppp":[65525,67585],"usd":[57608,61056]},"GRC":{"g":[2.1,1.8],"pc":[2.14,1.95],"gdp":[280.5,307.6],"ppp":[44981,47175],"usd":[27041,29696]},"HRV":{"g":[3.2,2.6],"pc":[2.99,2.39],"gdp":[106.1,116.6],"ppp":[51593,54359],"usd":[27376,30030]},"HUN":{"g":[0.4,1.7],"pc":[0.66,1.96],"gdp":[246.9,271.1],"ppp":[48239,50570],"usd":[25826,28430]},"IRL":{"g":[12.3,2.5],"pc":[10.73,1.34],"gdp":[718.1,779.4],"ppp":[152632,159129],"usd":[130652,140186]},"ISL":{"g":[1.3,1.9],"pc":[-0.0,-0.4],"gdp":[38.6,43.8],"ppp":[80662,82730],"usd":[99071,110048]},"ITA":{"g":[0.5,0.5],"pc":[0.56,0.59],"gdp":[2550.1,2738.2],"ppp":[63538,65761],"usd":[43270,46505]},"LTU":{"g":[2.9,2.9],"pc":[2.79,2.65],"gdp":[94.9,105.9],"ppp":[57818,61052],"usd":[32839,36545]},"LUX":{"g":[0.6,1.6],"pc":[-0.88,-0.44],"gdp":[101.1,110.4],"ppp":[152966,156719],"usd":[148247,158733]},"LVA":{"g":[2.1,2.2],"pc":[2.7,2.42],"gdp":[48.6,53.7],"ppp":[43509,45840],"usd":[26116,28913]},"MDA":{"g":[2.4,1.9],"pc":[4.21,3.69],"gdp":[20.3,21.9],"ppp":[19846,21170],"usd":[8542,9354]},"MKD":{"g":[3.5,3.1],"pc":[4.01,3.67],"gdp":[19.1,21.6],"ppp":[29773,31746],"usd":[10546,11967]},"NLD":{"g":[1.9,1.2],"pc":[1.33,0.66],"gdp":[1332.2,1449.7],"ppp":[84738,87773],"usd":[73833,79918]},"NOR":{"g":[1.1,1.5],"pc":[0.51,0.73],"gdp":[530.8,599.4],"ppp":[111545,115548],"usd":[94468,105877]},"POL":{"g":[3.6,3.3],"pc":[3.95,4.16],"gdp":[1035.6,1134.2],"ppp":[55793,59792],"usd":[28374,31336]},"PRT":{"g":[1.9,1.9],"pc":[1.19,2.17],"gdp":[346.4,380.6],"ppp":[50269,52841],"usd":[32166,35434]},"ROU":{"g":[0.7,0.7],"pc":[1.3,1.33],"gdp":[427.9,480.8],"ppp":[48724,50783],"usd":[22725,25693]},"SRB":{"g":[2,2.8],"pc":[2.72,3.54],"gdp":[100.0,112.0],"ppp":[32724,34863],"usd":[15284,17252]},"SVK":{"g":[0.8,0.6],"pc":[0.91,0.84],"gdp":[154.4,168.9],"ppp":[47684,49466],"usd":[28498,31242]},"SVN":{"g":[1.1,2],"pc":[0.77,1.81],"gdp":[79.6,86.7],"ppp":[57922,60664],"usd":[37357,40630]},"SWE":{"g":[1.5,2],"pc":[0.66,1.2],"gdp":[669.0,760.5],"ppp":[74081,77094],"usd":[62662,70676]},"UKR":{"g":[1.8,2],"pc":[3.61,3.51],"gdp":[212.9,225.3],"ppp":[21078,22443],"usd":[6499,6980]},"RUS":{"g":[1,1.1],"pc":[1.58,1.53],"gdp":[2587.9,2656.5],"ppp":[50255,52479],"usd":[17972,18525]},"BLR":{"g":[1.3,1.2],"pc":[1.81,1.7],"gdp":[92.8,102.0],"ppp":[34035,35616],"usd":[10209,11286]},"GEO":{"g":[7.5,5.3],"pc":[7.53,5.39],"gdp":[38.2,42.7],"ppp":[31352,33991],"usd":[10346,11574]},"TUR":{"g":[3.6,3.4],"pc":[3.23,2.9],"gdp":[1597.3,1640.2],"ppp":[44110,46672],"usd":[18611,19018]}};
+// gdp = GDP, current prices, US$ billions [2025, 2026, 2027]
+// ppp = GDP per capita, PPP current international $ [2025, 2026, 2027]
+// usd = GDP per capita, current US$ [2025, 2026, 2027]
+const IMF_OUTLOOK={"ALB":{"g":[3.7,3.4,3.2],"pc":[4.74,4.45,4.22],"gdp":[30.3,33.3,34.9],"ppp":[23498,25247,26895],"usd":[11235,12493,13217]},"AUT":{"g":[0.6,0.7,1],"pc":[0.35,0.45,0.75],"gdp":[579.9,623.7,644.7],"ppp":[75825,78334,80656],"usd":[63161,67761,69865]},"BEL":{"g":[1,0.7,1.1],"pc":[0.44,0.31,0.76],"gdp":[724.9,776.7,797.0],"ppp":[76208,78607,80914],"usd":[61002,65112,66590]},"BGR":{"g":[3.1,2.8,2.5],"pc":[5.96,3.66,3.37],"gdp":[131.0,148.1,158.4],"ppp":[42816,45642,48199],"usd":[20921,23848,25715]},"BIH":{"g":[2,2.2,2.7],"pc":[2.3,2.47,3.0],"gdp":[33.0,36.8,38.9],"ppp":[22887,24123,25392],"usd":[9568,10701,11358]},"CHE":{"g":[1.3,1.3,1.3],"pc":[0.58,0.59,0.59],"gdp":[1043.5,1146.9,1190.4],"ppp":[102096,105680,108681],"usd":[115620,126177,130035]},"CZE":{"g":[2.5,2.2,2.2],"pc":[2.79,2.51,2.52],"gdp":[389.0,432.6,451.1],"ppp":[60247,63550,66589],"usd":[35678,39795,41626]},"DEU":{"g":[0.2,0.8,1.2],"pc":[0.19,0.83,1.26],"gdp":[5048.1,5452.9,5642.2],"ppp":[74004,76747,79410],"usd":[60439,65303,67613]},"DNK":{"g":[2.9,2,1.6],"pc":[2.35,1.26,0.82],"gdp":[461.7,503.8,525.2],"ppp":[86094,89667,92336],"usd":[77046,83445,86325]},"ESP":{"g":[2.8,2.1,1.8],"pc":[1.47,0.9,0.75],"gdp":[1903.8,2091.2,2186.5],"ppp":[57034,59187,60950],"usd":[38290,41563,43008]},"EST":{"g":[0.6,1.4,1.9],"pc":[0.82,1.4,2.05],"gdp":[47.0,51.6,54.2],"ppp":[49492,51653,53878],"usd":[34325,37718,39644]},"FIN":{"g":[0.2,1,1.5],"pc":[0.06,0.93,1.5],"gdp":[316.9,337.7,350.3],"ppp":[66297,68861,71433],"usd":[56464,60130,62379]},"FRA":{"g":[0.9,0.9,0.9],"pc":[0.59,0.62,0.62],"gdp":[3368.9,3596.1,3672.1],"ppp":[66276,68567,70489],"usd":[48930,52083,53035]},"GBR":{"g":[1.3,0.8,1.3],"pc":[1.0,0.28,0.93],"gdp":[4003.0,4264.8,4466.1],"ppp":[65525,67585,69709],"usd":[57608,61056,63704]},"GRC":{"g":[2.1,1.8,1.7],"pc":[2.14,1.95,1.86],"gdp":[280.5,307.6,320.2],"ppp":[44981,47175,49085],"usd":[27041,29696,30966]},"HRV":{"g":[3.2,2.6,2.6],"pc":[2.99,2.39,2.39],"gdp":[106.1,116.6,122.6],"ppp":[51593,54359,56901],"usd":[27376,30030,31521]},"HUN":{"g":[0.4,1.7,2],"pc":[0.66,1.96,2.25],"gdp":[246.9,271.1,284.5],"ppp":[48239,50570,52870],"usd":[25826,28430,29902]},"IRL":{"g":[12.3,2.5,2.4],"pc":[10.73,1.34,1.47],"gdp":[718.1,779.4,808.5],"ppp":[152632,159129,164927],"usd":[130652,140186,144104]},"ISL":{"g":[1.3,1.9,2.1],"pc":[-0.0,-0.4,0.09],"gdp":[38.6,43.8,46.0],"ppp":[80662,82730,84548],"usd":[99071,110048,113119]},"ITA":{"g":[0.5,0.5,0.5],"pc":[0.56,0.59,0.62],"gdp":[2550.1,2738.2,2805.9],"ppp":[63538,65761,67625],"usd":[43270,46505,47715]},"LTU":{"g":[2.9,2.9,2.2],"pc":[2.79,2.65,2.13],"gdp":[94.9,105.9,110.5],"ppp":[57818,61052,63741],"usd":[32839,36545,38088]},"LUX":{"g":[0.6,1.6,1.7],"pc":[-0.88,-0.44,-0.31],"gdp":[101.1,110.4,114.5],"ppp":[152966,156719,159627],"usd":[148247,158733,161340]},"LVA":{"g":[2.1,2.2,2.4],"pc":[2.7,2.42,2.62],"gdp":[48.6,53.7,56.7],"ppp":[43509,45840,48055],"usd":[26116,28913,30619]},"MDA":{"g":[2.4,1.9,3.2],"pc":[4.21,3.69,5.04],"gdp":[20.3,21.9,23.7],"ppp":[19846,21170,22720],"usd":[8542,9354,10317]},"MKD":{"g":[3.5,3.1,3],"pc":[4.01,3.67,3.52],"gdp":[19.1,21.6,23.1],"ppp":[29773,31746,33596],"usd":[10546,11967,12875]},"NLD":{"g":[1.9,1.2,1.4],"pc":[1.33,0.66,0.93],"gdp":[1332.2,1449.7,1500.4],"ppp":[84738,87773,90552],"usd":[73833,79918,82328]},"NOR":{"g":[1.1,1.5,1.3],"pc":[0.51,0.73,0.52],"gdp":[530.8,599.4,604.1],"ppp":[111545,115548,118748],"usd":[94468,105877,105903]},"POL":{"g":[3.6,3.3,2.4],"pc":[3.95,4.16,2.6],"gdp":[1035.6,1134.2,1184.6],"ppp":[55793,59792,62685],"usd":[28374,31336,32793]},"PRT":{"g":[1.9,1.9,1.8],"pc":[1.19,2.17,2.06],"gdp":[346.4,380.6,396.3],"ppp":[50269,52841,55113],"usd":[32166,35434,36990]},"ROU":{"g":[0.7,0.7,2.5],"pc":[1.3,1.33,3.17],"gdp":[427.9,480.8,511.3],"ppp":[48724,50783,53518],"usd":[22725,25693,27498]},"SRB":{"g":[2,2.8,3.5],"pc":[2.72,3.54,4.4],"gdp":[100.0,112.0,122.0],"ppp":[32724,34863,37210],"usd":[15284,17252,18955]},"SVK":{"g":[0.8,0.6,1.6],"pc":[0.91,0.84,1.84],"gdp":[154.4,168.9,177.0],"ppp":[47684,49466,51515],"usd":[28498,31242,32823]},"SVN":{"g":[1.1,2,2.1],"pc":[0.77,1.81,2.0],"gdp":[79.6,86.7,90.2],"ppp":[57922,60664,63218],"usd":[37357,40630,42192]},"SWE":{"g":[1.5,2,1.9],"pc":[0.66,1.2,1.16],"gdp":[669.0,760.5,794.6],"ppp":[74081,77094,79705],"usd":[62662,70676,73307]},"UKR":{"g":[1.8,2,3.5],"pc":[3.61,3.51,2.16],"gdp":[212.9,225.3,238.7],"ppp":[21078,22443,23432],"usd":[6499,6980,7299]},"RUS":{"g":[1,1.1,1.1],"pc":[1.58,1.53,1.35],"gdp":[2587.9,2656.5,2533.4],"ppp":[50255,52479,54347],"usd":[17972,18525,17711]},"BLR":{"g":[1.3,1.2,1],"pc":[1.81,1.7,1.52],"gdp":[92.8,102.0,107.4],"ppp":[34035,35616,36942],"usd":[10209,11286,11940]},"GEO":{"g":[7.5,5.3,5],"pc":[7.53,5.39,5.09],"gdp":[38.2,42.7,46.7],"ppp":[31352,33991,36511],"usd":[10346,11574,12664]},"TUR":{"g":[3.6,3.4,3.5],"pc":[3.23,2.9,3.01],"gdp":[1597.3,1640.2,1629.5],"ppp":[44110,46672,49121],"usd":[18611,19018,18805]}};
 const outlookFrom={}; // code -> first year taken from the IMF projection (Infinity if none)
 const DATA_URL='https://ourworldindata.org/grapher/gdp-per-capita-worldbank.csv?v=1&csvType=full&useColumnShortNames=false';
-const CACHE_KEY='europe-3d-economic-map-data-v3-caucasus-2026';
-let data={}, currentYear=START_YEAR, mode='level', playing=false, timer=null, heightEnabled=true;
+const CACHE_KEY='europe-3d-economic-map-data-v4-caucasus-2027';
+// Public URL of this page. Used for embed snippets when the file is opened locally
+// or from a preview server; when served from a real host, that host wins.
+const CANONICAL_URL='https://pavlinov.github.io/3d-map/interactive-3d-map-europe-gdp-index.html';
+const PUBLIC_URL=/^https?:$/.test(location.protocol)&&!/^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname)?location.origin+location.pathname:CANONICAL_URL;
+// URL parameters: ?embed=1 (compact chrome for iframes), &year=2010, &mode=index, &country=POL
+const params=new URLSearchParams(location.search);
+const embedMode=params.get('embed')==='1'||(()=>{try{return self!==top}catch(error){return true}})();
+const startYear=Math.min(END_YEAR,Math.max(START_YEAR,parseInt(params.get('year'),10)||START_YEAR));
+const startMode=params.get('mode')==='index'?'index':'level';
+const startCountry=(params.get('country')||'DEU').toUpperCase();
+let data={}, currentYear=startYear, mode=startMode, playing=false, timer=null, heightEnabled=true;
 let levelMin=5000, levelMax=90000, selectedCode='DEU', hoveredCode=null;
+if(embedMode)document.body.classList.add('embed');
+document.querySelectorAll('#modeSwitcher button').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
 const countryObjects=new Map(), countryMeshes=[];
 const app=document.getElementById('app');
 const sceneHost=document.getElementById('scene');
@@ -455,7 +501,7 @@ function updateCountryVisual(code){
 }
 function update(y){
   currentYear=+y;yearNow.textContent=currentYear;yearNow.classList.toggle('projected',currentYear>LAST_ACTUAL_YEAR);slider.value=currentYear;slider.style.setProperty('--pct',`${(currentYear-START_YEAR)/(END_YEAR-START_YEAR)*100}%`);
-  COUNTRY_CODES.forEach(updateCountryVisual);updateLegend();updateDetail();
+  COUNTRY_CODES.forEach(updateCountryVisual);updateLegend();updateDetail();refreshEmbed();
 }
 function updateLegend(){
   const bar=document.getElementById('legendBar');bar.style.background=`linear-gradient(180deg,${(mode==='level'?LEVEL_STOPS:INDEX_STOPS).slice().reverse().join(',')})`;
@@ -481,13 +527,11 @@ const bn=v=>v==null?'—':(v>=1000?(v/1000).toFixed(2)+' tn':Math.round(v)+' bn'
 function renderOutlook(code){
   const o=IMF_OUTLOOK[code],host=document.getElementById('outlook');if(!o){host.innerHTML='';return}
   const cell=(v,f)=>`<td>${f(v)}</td>`,pc=v=>`${v>=0?'+':''}${v.toFixed(1)}%`,intd=v=>'int-$ '+Math.round(v).toLocaleString('en-US'),usd=v=>'$'+Math.round(v).toLocaleString('en-US');
+  const row=(label,arr,f)=>`<tr><th>${label}</th>${arr.map(v=>cell(v,f)).join('')}</tr>`;
   host.innerHTML=`<div class="outlook-head"><b>Outlook</b><span>IMF World Economic Outlook · Apr 2026</span></div>
-  <table class="outlook-table"><thead><tr><th></th><th>2025 <em>est.</em></th><th>2026 <em>proj.</em></th></tr></thead><tbody>
-  <tr><th>Real GDP growth</th>${cell(o.g[0],pc)}${cell(o.g[1],pc)}</tr>
-  <tr><th>GDP / capita, real</th>${cell(o.pc[0],pc)}${cell(o.pc[1],pc)}</tr>
-  <tr><th>GDP, current US$</th>${cell(o.gdp[0],bn)}${cell(o.gdp[1],bn)}</tr>
-  <tr><th>GDP / capita, PPP</th>${cell(o.ppp[0],intd)}${cell(o.ppp[1],intd)}</tr>
-  <tr><th>GDP / capita, US$</th>${cell(o.usd[0],usd)}${cell(o.usd[1],usd)}</tr></tbody></table>`;
+  <table class="outlook-table"><thead><tr><th></th><th>2025 <em>est.</em></th><th>2026 <em>proj.</em></th><th>2027 <em>proj.</em></th></tr></thead><tbody>
+  ${row('Real GDP growth',o.g,pc)}${row('GDP/cap. growth',o.pc,pc)}${row('GDP, US$',o.gdp,bn)}${row('GDP/cap. PPP',o.ppp,intd)}${row('GDP/cap. US$',o.usd,usd)}</tbody></table>
+  <div class="outlook-foot">2027 cross-check: EU +1.4% (European Commission, May 2026) · euro area +1.2% (OECD, Jun 2026) · IMF: EU +1.4%, euro area +1.2%</div>`;
 }
 function drawSpark(code){
   const svg=document.getElementById('sparkline'),vals=[];for(let y=START_YEAR;y<=END_YEAR;y++){const v=metricValue(code,y);if(v!=null)vals.push([y,v])}if(vals.length<2){svg.innerHTML='';return}
@@ -498,14 +542,14 @@ function drawSpark(code){
   const xSplit=from<=END_YEAR?X(from-1):null;
   svg.innerHTML=`<defs><linearGradient id="lineg"><stop offset="0" stop-color="#2e9feb"/><stop offset="1" stop-color="#ffc14e"/></linearGradient><linearGradient id="fillg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffbf48" stop-opacity=".28"/><stop offset="1" stop-color="#ffbf48" stop-opacity="0"/></linearGradient></defs><path d="${d} L ${X(vals.at(-1)[0])},${H-P} L ${X(vals[0][0])},${H-P} Z" fill="url(#fillg)"/>${xSplit==null?'':`<rect x="${xSplit}" y="0" width="${W-P-xSplit}" height="${H}" fill="rgba(255,200,90,.07)"/><line x1="${xSplit}" y1="0" x2="${xSplit}" y2="${H}" stroke="rgba(255,210,120,.45)" stroke-dasharray="2 3" vector-effect="non-scaling-stroke"/>`}<path d="${dActual||d}" fill="none" stroke="url(#lineg)" stroke-width="2.2" vector-effect="non-scaling-stroke"/>${dProj?`<path d="${dProj}" fill="none" stroke="#ffd68a" stroke-width="2.2" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>`:''}${cy==null?'':`<circle cx="${cx}" cy="${cy}" r="4" fill="#fff3c0" stroke="#ffbd48" stroke-width="2"/>`}`;
 }
-function setSelected(code){selectedCode=code;document.getElementById('detailCard').style.display='block';COUNTRY_CODES.forEach(updateCountryVisual);updateDetail();}
+function setSelected(code){selectedCode=code;document.getElementById('detailCard').style.display='block';COUNTRY_CODES.forEach(updateCountryVisual);updateDetail();refreshEmbed();}
 const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
 function pointerCoords(e){const r=renderer.domElement.getBoundingClientRect();pointer.x=((e.clientX-r.left)/r.width)*2-1;pointer.y=-((e.clientY-r.top)/r.height)*2+1;}
 function hitTest(e){pointerCoords(e);raycaster.setFromCamera(pointer,camera);return raycaster.intersectObjects(countryMeshes,false)[0]||null}
 renderer.domElement.addEventListener('pointermove',e=>{
   const hit=hitTest(e),code=hit?.object?.userData?.code||null;if(code!==hoveredCode){const prev=hoveredCode;hoveredCode=code;if(prev)updateCountryVisual(prev);if(code)updateCountryVisual(code)}
   renderer.domElement.style.cursor=code?'pointer':'grab';
-  if(code){const m=COUNTRY_META[code],v=metricValue(code,currentYear),b=valueFor(code,START_YEAR),raw=valueFor(code,currentYear),chg=b&&raw?(raw/b-1)*100:null;tooltip.querySelector('.tt-name').textContent=`${m.name}${code==='RUS'?' (European part)':''} · ${code}`;tooltip.querySelector('.tt-value').textContent=fmt(v);const o=IMF_OUTLOOK[code],yi=currentYear-2025,outlook=o&&yi>=0&&yi<2?` · IMF real GDP ${pct(o.g[yi])}${yi?' (proj.)':' (est.)'}`:'';tooltip.querySelector('.tt-meta').textContent=`${currentYear}${isProjected(code,currentYear)?' (IMF projection)':''} · ${pct(chg)} since 1995${outlook}${code==='RUS'?' · national figures':''}`;tooltip.style.left=Math.min(innerWidth-240,e.clientX+15)+'px';tooltip.style.top=Math.min(innerHeight-130,e.clientY+15)+'px';tooltip.classList.add('show')}else tooltip.classList.remove('show');
+  if(code){const m=COUNTRY_META[code],v=metricValue(code,currentYear),b=valueFor(code,START_YEAR),raw=valueFor(code,currentYear),chg=b&&raw?(raw/b-1)*100:null;tooltip.querySelector('.tt-name').textContent=`${m.name}${code==='RUS'?' (European part)':''} · ${code}`;tooltip.querySelector('.tt-value').textContent=fmt(v);const o=IMF_OUTLOOK[code],yi=currentYear-2025,outlook=o&&yi>=0&&yi<3?` · IMF real GDP ${pct(o.g[yi])}${yi?' (proj.)':' (est.)'}`:'';tooltip.querySelector('.tt-meta').textContent=`${currentYear}${isProjected(code,currentYear)?' (IMF projection)':''} · ${pct(chg)} since 1995${outlook}${code==='RUS'?' · national figures':''}`;tooltip.style.left=Math.min(innerWidth-240,e.clientX+15)+'px';tooltip.style.top=Math.min(innerHeight-130,e.clientY+15)+'px';tooltip.classList.add('show')}else tooltip.classList.remove('show');
 });
 renderer.domElement.addEventListener('pointerleave',()=>{if(hoveredCode){const p=hoveredCode;hoveredCode=null;updateCountryVisual(p)}tooltip.classList.remove('show')});
 renderer.domElement.addEventListener('click',e=>{const h=hitTest(e);if(h?.object?.userData?.code)setSelected(h.object.userData.code)});
@@ -516,7 +560,7 @@ document.getElementById('heightToggle').addEventListener('click',()=>{heightEnab
 document.getElementById('closeDetail').addEventListener('click',()=>document.getElementById('detailCard').style.display='none');
 slider.addEventListener('input',e=>{if(playing)togglePlay();update(+e.target.value)});
 document.querySelectorAll('#modeSwitcher button').forEach(btn=>btn.addEventListener('click',()=>{mode=btn.dataset.mode;document.querySelectorAll('#modeSwitcher button').forEach(b=>b.classList.toggle('active',b===btn));update(currentYear)}));
-document.addEventListener('keydown',e=>{if(e.key===' '){e.preventDefault();togglePlay()}else if(e.key==='ArrowRight')update(Math.min(END_YEAR,currentYear+1));else if(e.key==='ArrowLeft')update(Math.max(START_YEAR,currentYear-1));else if(e.key.toLowerCase()==='r')setIsoView()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){toggleEmbed(false);return}if(e.target===embedCode)return;if(e.key===' '){e.preventDefault();togglePlay()}else if(e.key==='ArrowRight')update(Math.min(END_YEAR,currentYear+1));else if(e.key==='ArrowLeft')update(Math.max(START_YEAR,currentYear-1));else if(e.key.toLowerCase()==='r')setIsoView()});
 async function loadData(){
   let source='demo';
   const validSeries=series=>series&&COUNTRY_CODES.every(code=>{
@@ -534,10 +578,10 @@ async function loadData(){
     const status=document.getElementById('dataStatus');
     status.classList.toggle('demo',source==='demo');
     const description=source==='live'?'World Bank':source==='cached'?'cached World Bank':'demo data';
-    status.querySelector('span:last-child').textContent=`${COUNTRY_CODES.length} countries · 1995–2025 ${description} · 2026 IMF projection${loading?' · updating…':''}`;
+    status.querySelector('span:last-child').textContent=`${COUNTRY_CODES.length} countries · 1995–2025 ${description} · 2026–27 IMF projection${loading?' · updating…':''}`;
     update(currentYear);
   }
-  refreshStatus(true);setSelected('DEU');document.getElementById('loading').classList.add('hide');
+  refreshStatus(true);setSelected(COUNTRY_CODES.includes(startCountry)?startCountry:'DEU');document.getElementById('loading').classList.add('hide');
   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),10000);
   try{
     const response=await fetch(DATA_URL,{cache:'force-cache',signal:controller.signal});
@@ -549,6 +593,48 @@ async function loadData(){
   }catch(error){/* Keep the clearly labeled cache or deterministic demo series. */}
   finally{clearTimeout(timeout);refreshStatus();}
 }
+// ---- Embed: build an iframe snippet for other websites and copy it to the clipboard ----
+const embedPop=document.getElementById('embedPop'),embedCode=document.getElementById('embedCode'),embedStatus=document.getElementById('embedStatus');
+let embedSize='responsive';
+function embedUrl(withState){
+  const q=new URLSearchParams({embed:'1'});
+  if(withState){q.set('year',currentYear);if(mode!=='level')q.set('mode',mode);if(selectedCode&&selectedCode!=='DEU')q.set('country',selectedCode);}
+  return `${PUBLIC_URL}?${q}`;
+}
+function embedSnippet(){
+  const withState=document.getElementById('embedState').checked,url=embedUrl(withState);
+  const dims=embedSize==='fixed'?'width="960" height="600"':embedSize==='compact'?'width="100%" height="480"':'width="100%" height="640"';
+  const style=embedSize==='fixed'?'border:0;border-radius:12px;max-width:100%':'border:0;border-radius:12px';
+  return `<iframe src="${url}"\n  ${dims} style="${style}"\n  loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"\n  title="Europe Economic Evolution — interactive 3D GDP map"></iframe>`;
+}
+function refreshEmbed(){
+  if(!embedPop.classList.contains('open'))return;
+  embedCode.value=embedSnippet();document.getElementById('embedLink').href=embedUrl(document.getElementById('embedState').checked);
+}
+async function copyText(text){
+  try{await navigator.clipboard.writeText(text);return true}
+  catch(error){
+    try{embedCode.focus();embedCode.select();return document.execCommand('copy')}catch(fallbackError){return false}
+  }
+}
+function toggleEmbed(open){
+  embedPop.classList.toggle('open',open);document.body.classList.toggle('embed-open',open);document.getElementById('embedBtn').setAttribute('aria-expanded',String(open));
+  if(open){refreshEmbed();embedStatus.textContent='';}
+}
+document.getElementById('embedBtn').addEventListener('click',()=>toggleEmbed(!embedPop.classList.contains('open')));
+document.querySelectorAll('#embedSize button').forEach(btn=>btn.addEventListener('click',()=>{embedSize=btn.dataset.size;document.querySelectorAll('#embedSize button').forEach(b=>b.classList.toggle('active',b===btn));refreshEmbed()}));
+document.getElementById('embedState').addEventListener('change',refreshEmbed);
+embedCode.addEventListener('focus',()=>embedCode.select());
+document.getElementById('copyEmbed').addEventListener('click',async e=>{
+  const btn=e.currentTarget,ok=await copyText(embedCode.value);
+  btn.classList.toggle('done',ok);btn.textContent=ok?'Copied ✓':'Copy embed code';
+  embedStatus.textContent=ok?'Snippet is in your clipboard':'Copy blocked — select the code and press ⌘/Ctrl+C';
+  setTimeout(()=>{btn.classList.remove('done');btn.textContent='Copy embed code'},1800);
+});
+document.addEventListener('pointerdown',e=>{if(embedPop.classList.contains('open')&&!embedPop.contains(e.target)&&e.target.id!=='embedBtn')toggleEmbed(false)});
+document.getElementById('openFull').href=PUBLIC_URL;
+// In an iframe the wheel would otherwise hijack the host page's scroll: zoom only after a click.
+if(embedMode){controls.enableZoom=false;renderer.domElement.addEventListener('pointerdown',()=>{controls.enableZoom=true},{once:true});}
 function resize(){
   const w=innerWidth,h=innerHeight,aspect=w/h;
   const base=Math.max(9.6,mapFrameHeight/.84/2,mapFrameWidth/aspect/.88/2);
