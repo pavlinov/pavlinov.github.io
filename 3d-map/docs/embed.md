@@ -25,7 +25,7 @@ with an iframe. The **`</>` button** in the map's toolbar generates the snippet 
 | `sel` | ISO-3166 alpha-3, e.g. `UKR` | Initially pinned country (default `DEU`) |
 | `labels=0` | — | Hide country codes |
 | `flat=1` | — | Do not extrude by value |
-| `occupied` | comma list of `CRI`, `KHE`, `ZAP`, `DON`, `LUH` | Occupied Ukrainian territories (Crimea, Kherson, Zaporizhzhia, Donetsk, Luhansk) to draw as part of Russia; all others stay within Ukraine. Also switchable from Russia's country card. GDP figures are national statistics and do not change. `crimea=RUS` is accepted as a legacy alias for `occupied=CRI`. |
+| `crimea` | `UKR` (default), `RUS` | Which country Crimea is drawn as part of (also switchable in the legend). GDP figures are national statistics and do not change. |
 
 Example: `…/europe-economic-map-textured.html?metric=gdp&year=2010&sel=UKR&embed=1`
 
